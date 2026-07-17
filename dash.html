@@ -1,0 +1,515 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AgriData - Infrastructure Management Dashboard</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;900&amp;family=Inter:wght@400;500;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#7ad7bf",
+                        "on-primary-fixed": "#002019",
+                        "on-primary-container": "#ddfff3",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-background": "#191c1d",
+                        "secondary-fixed-dim": "#bdc7d9",
+                        "on-tertiary-fixed": "#0e1e1e",
+                        "primary": "#006554",
+                        "on-secondary-container": "#5b6575",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-fixed": "#121c29",
+                        "secondary-container": "#d9e3f6",
+                        "inverse-surface": "#2e3132",
+                        "tertiary-fixed-dim": "#b8cac9",
+                        "secondary": "#555f6f",
+                        "primary-fixed": "#96f4da",
+                        "on-surface": "#191c1d",
+                        "surface-container-high": "#e7e8e9",
+                        "surface-dim": "#d9dadb",
+                        "on-error": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-container": "#edeeef",
+                        "tertiary": "#4c5c5c",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#bdc9c4",
+                        "on-surface-variant": "#3e4945",
+                        "surface-variant": "#e1e3e4",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f8f9fa",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#647574",
+                        "on-tertiary-fixed-variant": "#3a4a49",
+                        "on-primary": "#ffffff",
+                        "outline": "#6e7a75",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#7ad7bf",
+                        "on-primary-fixed-variant": "#005142",
+                        "on-secondary-fixed-variant": "#3d4756",
+                        "tertiary-fixed": "#d4e6e5",
+                        "surface-bright": "#f8f9fa",
+                        "primary-container": "#13806b",
+                        "surface-tint": "#006b59",
+                        "surface-container-low": "#f3f4f5",
+                        "on-tertiary-container": "#e9fbfa",
+                        "secondary-fixed": "#d9e3f6",
+                        "surface": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "0.5rem",
+                        "stack-lg": "2rem",
+                        "container-margin": "2rem",
+                        "component-padding": "1rem",
+                        "gutter": "1.5rem",
+                        "stack-md": "1rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "data-mono": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #bdc9c4;
+            border-radius: 10px;
+        }
+        .elevation-1 {
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-[#F8F9FA] text-on-surface font-body-md overflow-hidden">
+<!-- Sidebar - Matching IMAGE_12 Layout -->
+<aside class="w-[240px] h-screen fixed left-0 top-0 border-r border-outline-variant/30 flex flex-col justify-between p-6 bg-white z-20">
+<div>
+<!-- Brand Logo -->
+<div class="flex items-center gap-3 mb-10">
+<img alt="AgriData Logo" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbcIvN2CcJL5gIj_v-RdvWXAjO4OAoZ90SkijhUTHfQN5miv1Y-T1IHSQY3mPgy_cuG13gl-rYpa3xQ1W0Iv4spVT-dlmVgnwNvrpc-mlo8QG7ezmZHVCdpoaOx9fCq18lYwkSR2FJwxebFh3Tm1WegM9kZuEeiUqIDPQ4Uig9O4k66g9wLtvb6HaG-_42lihUIFgr_ckAI2g-72slPyCApNjoLKPb2nMAsMRURVaF30UcJkaOu6Y9J3dWIXfD4YKn5pte-1rloTo">
+<div>
+<h1 class="font-headline-md text-xl font-bold text-on-surface leading-tight">AgriData</h1>
+<p class="text-[10px] text-on-surface-variant font-medium">GIS Intelligence</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="space-y-1">
+<a class="flex items-center gap-3 bg-[#F1F8F6] text-primary rounded-lg px-4 py-2.5 transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-medium text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">map</span>
+<span class="text-sm">GIS Map</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">database</span>
+<span class="text-sm">Datasets</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">experiment</span>
+<span class="text-sm">Analysis Studio</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">hub</span>
+<span class="text-sm">Data Sources</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">insights</span>
+<span class="text-sm">Analytics</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">bar_chart</span>
+<span class="text-sm">Reports</span>
+</a>
+</nav>
+</div>
+<!-- Settings at Bottom -->
+<div class="pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-4 py-2.5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-[240px] h-screen flex flex-col">
+<!-- Top Navigation Bar - Matching IMAGE_12 hierarchy -->
+<header class="h-[72px] flex items-center justify-between w-full px-10 bg-white/80 backdrop-blur-md z-10 sticky top-0 border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<span class="text-on-surface-variant text-sm font-medium">Portfolio / Southwest Region / <span class="text-primary font-bold">Overview</span></span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="bg-[#F3F4F5] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-1 focus:ring-primary/20 transition-all" placeholder="Search projects..." type="text">
+</div>
+<button class="bg-primary text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Project
+                </button>
+<div class="flex items-center gap-2 pl-2 cursor-pointer group">
+<img class="w-8 h-8 rounded-full object-cover" data-alt="User profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANhRmfA1jRinGYfOpUHVaXitg-7JowRpIn4HU-mw2qujiskbLtMbPRm5dV5jkSajMsbUww2xCLLsyTN6Iy_OvHYvZvrUtY4SrstqHWCt0eNAtqGNzGwzWNrTZaaE6ZP6r1b5MgM09ckKj_Tklt7IBOpSqeyec6BWUQsR_b4SB_KYPW_0s36kdbzj3v7HA1-a2ddWnHZ0WJ7bawXdHwn2fljqLU_n8jN4RDfZhDFpWTE5QUACfIXD32Vam57fKSa-lLd7i5cPj7YHU">
+<span class="text-sm font-bold text-on-surface">Vitalii A.</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">expand_more</span>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<section class="p-10 overflow-y-auto flex-1 custom-scrollbar">
+<!-- Page Header -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-[32px] text-on-background mb-1">Dashboard</h2>
+<p class="text-on-surface-variant font-body-md">Overview of your infrastructure intelligence platform</p>
+</div>
+<div class="flex gap-3">
+<div class="bg-white border border-outline-variant/30 px-4 py-2 rounded-lg flex items-center gap-3 text-sm font-medium cursor-pointer">
+<span class="material-symbols-outlined text-lg text-on-surface-variant">calendar_today</span>
+<span class="">May 20 – May 27, 2024</span>
+<span class="material-symbols-outlined text-lg text-on-surface-variant">expand_more</span>
+</div>
+</div>
+</div>
+<!-- KPI Cards Grid - Matching IMAGE_12 spacing/layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Active Projects -->
+<div class="bg-white p-6 rounded-xl elevation-1 border border-outline-variant/20">
+<div class="flex gap-4 items-start">
+<div class="p-2.5 bg-primary/5 rounded-lg">
+<span class="material-symbols-outlined text-primary text-[24px]">account_tree</span>
+</div>
+<div class="flex-1">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Active Projects</p>
+<div class="flex items-end gap-2">
+<h3 class="text-[28px] font-bold text-on-surface leading-none">142</h3>
+<span class="text-[12px] font-bold text-primary flex items-center mb-1">
+<span class="material-symbols-outlined text-sm">north</span>12%
+                                </span>
+</div>
+<p class="text-[11px] text-on-surface-variant/60 mt-1">vs last 7 days</p>
+</div>
+</div>
+</div>
+<!-- Budget Utilization -->
+<div class="bg-white p-6 rounded-xl elevation-1 border border-outline-variant/20">
+<div class="flex gap-4 items-start">
+<div class="p-2.5 bg-secondary-container/30 rounded-lg text-secondary">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+</div>
+<div class="flex-1">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Budget Utilization</p>
+<div class="flex items-end gap-2">
+<h3 class="text-[28px] font-bold text-on-surface leading-none">84.2%</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant/60 mt-1">FY24 Period</p>
+</div>
+</div>
+</div>
+<!-- System Health -->
+<div class="bg-white p-6 rounded-xl elevation-1 border border-outline-variant/20">
+<div class="flex gap-4 items-start">
+<div class="p-2.5 bg-on-primary-container/20 rounded-lg text-primary-container">
+<span class="material-symbols-outlined text-[24px]">analytics</span>
+</div>
+<div class="flex-1">
+<p class="text-on-surface-variant text-sm font-medium mb-1">System Health</p>
+<div class="flex items-end gap-2">
+<h3 class="text-[28px] font-bold text-on-surface leading-none">99.8%</h3>
+</div>
+<p class="text-[11px] text-primary mt-1 font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Operational
+                            </p>
+</div>
+</div>
+</div>
+<!-- Risk Assessment -->
+<div class="bg-white p-6 rounded-xl elevation-1 border border-outline-variant/20">
+<div class="flex gap-4 items-start">
+<div class="p-2.5 bg-error/10 rounded-lg text-error">
+<span class="material-symbols-outlined text-[24px]">warning</span>
+</div>
+<div class="flex-1">
+<p class="text-on-surface-variant text-sm font-medium mb-1">Risk Exposure</p>
+<div class="flex items-end gap-2">
+<h3 class="text-[28px] font-bold text-on-surface leading-none">Low</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant/60 mt-1">requires attention</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Central Content Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Map Widget -->
+<div class="lg:col-span-8 bg-white rounded-xl elevation-1 border border-outline-variant/20 overflow-hidden flex flex-col min-h-[540px]">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<div>
+<h4 class="font-bold text-lg text-on-surface">AgriData Infrastructure Map</h4>
+<p class="text-[13px] text-on-surface-variant">Live view of substation assets and grid connectivity.</p>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center gap-2 border border-outline-variant/30 rounded-lg px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-surface-container-low">
+<span class="">NDVI</span>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-lg border border-outline-variant/30">
+<span class="material-symbols-outlined text-[20px]">fullscreen</span>
+</button>
+</div>
+</div>
+<div class="flex-1 relative bg-[#EDEEEF] group overflow-hidden">
+<div class="w-full h-full bg-cover bg-center absolute inset-0 opacity-90 group-hover:scale-105 transition-transform duration-[15s]" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDPI-dsqb4Rw8exs7AQgXZaCvvYIf4okvNZavyTHJK_fAT4sdd1P7XA8ESOs5EjAH1mCDrgomXrQcW23KzaW58_nhM9HXiVf6QKnPpwopp4dnpisXx49X5EfKTmifNVph35RnXF3LOud_tSr4f0-UOIz0MSmcXbbb4x6dfzKsUPJhyq1SV9b4Voh6I8rjP_k0H_83fn4BJUy0JbDu_lrK5Di1vZX_qIFOAfwPufMl2xVpjoXP_TxA-8QBimFXARFztrpNiUM7QAmho')"></div>
+<!-- Overlay Legend -->
+<div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur p-4 rounded-lg border border-outline-variant/20 elevation-1">
+<div class="space-y-2.5">
+<div class="flex items-center gap-3 text-xs">
+<span class="w-3.5 h-3.5 rounded-full bg-primary shadow-sm"></span>
+<span class="font-bold text-on-surface">Primary Substation</span>
+</div>
+<div class="flex items-center gap-3 text-xs">
+<span class="w-3.5 h-3.5 rounded-full bg-secondary shadow-sm"></span>
+<span class="font-bold text-on-surface">Service Hub</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity -->
+<div class="lg:col-span-4 bg-white rounded-xl elevation-1 border border-outline-variant/20 flex flex-col h-full">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h4 class="font-bold text-lg text-on-surface">Recent Activity</h4>
+<span class="text-sm font-bold text-primary cursor-pointer hover:underline">View all</span>
+</div>
+<div class="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-lg bg-[#F1F8F6] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-primary">cloud_upload</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-on-surface truncate">Site Comparison Exported</p>
+<span class="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0"></span>
+</div>
+<p class="text-[13px] text-on-surface-variant mt-0.5">Portfolio / Southwest Region</p>
+<p class="text-[11px] text-on-surface-variant/60 mt-1.5">24 mins ago</p>
+</div>
+</div>
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-lg bg-error-container/40 flex items-center justify-center shrink-0 text-error">
+<span class="material-symbols-outlined text-[20px]">priority_high</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-on-surface truncate">Risk threshold exceeded</p>
+<span class="w-2 h-2 rounded-full bg-error mt-1.5 shrink-0"></span>
+</div>
+<p class="text-[13px] text-on-surface-variant mt-0.5">Grid maintenance at Copper Basin.</p>
+<p class="text-[11px] text-on-surface-variant/60 mt-1.5">1 hour ago</p>
+</div>
+</div>
+<!-- Activity Item -->
+<div class="flex gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">person</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-on-surface truncate">New Stakeholder Added</p>
+<span class="w-2 h-2 rounded-full bg-secondary mt-1.5 shrink-0"></span>
+</div>
+<p class="text-[13px] text-on-surface-variant mt-0.5">Elena Rossi added to project.</p>
+<p class="text-[11px] text-on-surface-variant/60 mt-1.5">4 hours ago</p>
+</div>
+</div>
+</div>
+<!-- System Status Micro-widget - Matching bottom right of IMAGE_12 content block -->
+<div class="p-6 border-t border-outline-variant/10">
+<h5 class="text-[13px] font-bold text-on-surface mb-4">System Status</h5>
+<div class="space-y-4">
+<div class="flex items-center justify-between text-[13px]">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span class="text-on-surface-variant">All Systems Operational</span>
+</div>
+<span class="font-medium text-on-surface-variant">99.9% uptime</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+<span class="text-on-surface-variant">Data Processing</span>
+</div>
+<span class="font-medium text-on-surface-variant">Real-time</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Data Table Section -->
+<div class="mt-8 bg-white rounded-xl elevation-1 border border-outline-variant/20 overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10 flex items-center justify-between">
+<h4 class="font-bold text-lg text-on-surface">AgriData Priority Opportunities</h4>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 border border-outline-variant/30 rounded-lg px-3 py-1 text-sm font-medium cursor-pointer">
+<span class="">All Regions</span>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</div>
+<button class="text-sm font-bold text-primary hover:bg-primary/5 px-4 py-1 rounded-lg transition-colors">Export CSV</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/40 text-[11px] uppercase tracking-wider font-bold text-on-surface-variant">
+<th class="px-8 py-4">Site Name</th>
+<th class="px-8 py-4">Suitability</th>
+<th class="px-8 py-4">Est. Value</th>
+<th class="px-8 py-4">Readiness</th>
+<th class="px-8 py-4">Owner</th>
+<th class="px-8 py-4 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-variant/10 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded bg-[#F1F8F6] flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">home_pin</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Mesa Ridge</p>
+<p class="text-[11px] text-on-surface-variant">AZ-042 • 146 acres</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-24 bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary h-full rounded-full" style="width: 89%"></div>
+</div>
+<span class="text-[13px] font-mono font-bold">89</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm font-bold text-on-surface">$42.8M</td>
+<td class="px-8 py-5">
+<span class="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[11px] font-bold">HIGH</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full" data-alt="A small profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4FDRXENHk1G4LbkWahtz90oT96h9pbO2ziFr6RV8DbQc7NBF9rx_H0oiWQutDBDLNM8TqwrkCpgDXJiIAPwXaiZ0O-nhq6f1sylo8IrK8vjtzOERhEG-kIVQ6fQuqDv01AGGjt6VDAdMCFfayAS114TVr5Zn5b_HVmzEXn96bQ_Eepr_NdakIBPtiwlmxG-p7xyhev51rrMq2R4XmIUxNyEMXtmARsHVcIvJxpVX6o9VBS66PyB0OrfKqeH1v35dRn3D6kxSRuBU">
+<span class="text-[13px] font-medium">John D.</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-variant/10 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded bg-[#F1F8F6] flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">home_pin</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Copper Basin</p>
+<p class="text-[11px] text-on-surface-variant">AZ-087 • 210 acres</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-24 bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary h-full rounded-full" style="width: 72%"></div>
+</div>
+<span class="text-[13px] font-mono font-bold">72</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm font-bold text-on-surface">$39.6M</td>
+<td class="px-8 py-5">
+<span class="px-2.5 py-1 rounded-lg bg-secondary-container/40 text-secondary text-[11px] font-bold">MED</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<img class="w-6 h-6 rounded-full" data-alt="A small profile thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDth7VH0Y1HCD0ojzB6uITqaZmPF0AiQPEhnIF-pu3ql35JAHT9O6HSbjEzOYNPas0PRPEVTinUYRsGzkK7iwzpvc5X7QaYLPN0ikJ0jsaEbF0wJ3VNrlBBiFfmlMJjzLzHfuW-cLws2gXv1awK4K_0mFvGzlDZSzbMMQXeMG-Rl62SkFjCt9VL3u_4e0oinoyeP8kmPz9ZQF3PZ37_bT9_kDFVaTJavnndkH1o81XDTDeSFeVzcmjggE3IGUvPvuWt2bRdFazfv_k">
+<span class="text-[13px] font-medium">Sarah K.</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simple active state toggle for sidebar
+            const navItems = document.querySelectorAll('nav a');
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    navItems.forEach(i => {
+                        i.classList.remove('bg-[#F1F8F6]', 'text-primary');
+                        i.classList.add('text-on-surface-variant', 'hover:bg-surface-container-low');
+                        const icon = i.querySelector('.material-symbols-outlined');
+                        if(icon) icon.style.fontVariationSettings = "'FILL' 0";
+                    });
+                    item.classList.add('bg-[#F1F8F6]', 'text-primary');
+                    item.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-low');
+                    const activeIcon = item.querySelector('.material-symbols-outlined');
+                    if(activeIcon) activeIcon.style.fontVariationSettings = "'FILL' 1";
+                });
+            });
+        });
+    </script>
+
+
+</body></html>
