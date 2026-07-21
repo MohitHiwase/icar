@@ -1,0 +1,16 @@
+node_modules/
+dist/
+uploads/
+
+# Environment variables
+.env
+
+# Prisma generated client
+src/generated/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

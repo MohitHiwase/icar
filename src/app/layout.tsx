@@ -18,9 +18,11 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+import TopNavBar from "@/components/TopNavBar";
+
 export const metadata: Metadata = {
-  title: "Visual Design System Replicator",
-  description: "Dashboard",
+  title: "GeoVision",
+  description: "GeoVision Dashboard",
 };
 
 export default function RootLayout({
@@ -36,9 +38,18 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-full flex flex-col font-inter">
+      <body className="flex h-screen overflow-hidden bg-[#F8FAFC] text-on-surface font-body-md font-inter">
+        {/* Fixed Left Sidebar */}
         <Sidebar />
-        {children}
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative ml-[240px]">
+          <TopNavBar />
+          
+          <main className="flex-1 overflow-x-hidden overflow-y-auto relative w-full h-full">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

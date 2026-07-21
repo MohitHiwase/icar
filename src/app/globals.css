@@ -1,20 +1,29 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #006554;
-  --color-primary-container: #13806b;
-  --color-secondary: #555f6f;
-  --color-background: #f8f9fa;
-  --color-surface-dim: #d9dadb;
-  --color-surface: #f8f9fa;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f3f4f5;
-  --color-surface-container: #edeeef;
-  --color-on-surface: #191c1d;
-  --color-outline: #6e7a75;
-  --color-outline-variant: #bdc9c4;
+  --color-primary: #1F6F5F;
+  --color-primary-container: #e6f3f0;
+  --color-secondary: #3FA796;
+  --color-secondary-container: #e6f6f4;
+  --color-tertiary: #3B82F6;
+  --color-tertiary-container: #eff6ff;
+  --color-error: #EF4444;
+  --color-error-container: #fee2e2;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-background: #F8FAFC;
+  --color-surface-dim: #E5E7EB;
+  --color-surface: #F8FAFC;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F8FAFC;
+  --color-surface-container: #FFFFFF;
+  --color-on-surface: #111827;
+  --color-on-surface-variant: #6B7280;
+  --color-outline: #D1D5DB;
+  --color-outline-variant: #E5E7EB;
 
-  --font-hanken: var(--font-hanken), sans-serif;
+  /* Force Inter everywhere by redefining arbitrary fonts to Inter */
+  --font-hanken: var(--font-inter), sans-serif;
   --font-inter: var(--font-inter), sans-serif;
   --font-jetbrains: var(--font-jetbrains), monospace;
 

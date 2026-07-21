@@ -1,0 +1,2 @@
+src/app/data-sources/page.tsx(169,74): error TS2339: Property 'statusType' does not exist on type 'Infrastructure'.
+src/app/data-sources/page.tsx(188,30): error TS2339: Property 'statusType' does not exist on type 'Infrastructure'.

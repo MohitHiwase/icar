@@ -1,0 +1,287 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ──────────────────────────────────────
+//  1. User
+// ──────────────────────────────────────
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  name         String   @db.VarChar(100)
+  avatarUrl    String?  @map("avatar_url") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dataSources       DataSource[]
+  datasets          Dataset[]
+  importJobs        ImportJob[]
+  analysisPipelines AnalysisPipeline[]
+  mapLayers         MapLayer[]
+  reports           Report[]
+
+  @@map("users")
+}
+
+// ──────────────────────────────────────
+//  2. DataSource
+// ──────────────────────────────────────
+model DataSource {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String   @db.VarChar(200)
+  type       String   @db.VarChar(50)   // 'API' | 'MANUAL'
+  provider   String   @db.VarChar(100)  // e.g. "Bhuvan", "Sentinel Hub"
+  baseUrl    String?  @map("base_url") @db.VarChar(500)
+  authConfig Json?    @map("auth_config") @db.JsonB
+  status     String   @default("active") @db.VarChar(20) // active | offline | error
+  lastSyncAt DateTime? @map("last_sync_at")
+  createdBy  String   @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator    User       @relation(fields: [createdBy], references: [id])
+  datasets   Dataset[]
+  importJobs ImportJob[]
+
+  @@unique([name, createdBy])
+  @@index([createdBy])
+  @@index([status])
+  @@index([type])
+  @@map("data_sources")
+}
+
+// ──────────────────────────────────────
+//  3. Dataset  (central entity)
+// ──────────────────────────────────────
+model Dataset {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String   @db.VarChar(300)
+  description      String?  @db.Text
+  dataType         String   @map("data_type") @db.VarChar(50)   // satellite, climate, soil, etc.
+  fileFormat       String   @map("file_format") @db.VarChar(30)  // csv, geojson, shapefile, geotiff
+  filePath         String   @map("file_path") @db.VarChar(500)
+  fileSizeBytes    BigInt   @map("file_size_bytes")
+  origin           String   @db.VarChar(20) // api_import, manual_upload, merged, analysis_output
+  qualityStatus    String   @default("raw") @map("quality_status") @db.VarChar(20) // raw, cleaned, standardized, merged
+  parentDatasetIds String[] @map("parent_dataset_ids") @db.Uuid
+  metadata         Json?    @db.JsonB
+  sourceId         String?  @map("source_id") @db.Uuid
+  uploadedBy       String   @map("uploaded_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  // Relations
+  source         DataSource?     @relation(fields: [sourceId], references: [id])
+  uploader       User            @relation(fields: [uploadedBy], references: [id])
+  importJobs     ImportJob[]
+  pipelineNodes  PipelineNode[]
+  mapLayers      MapLayer[]
+  reports        Report[]
+  analysisResult AnalysisResult? @relation("GeneratedDataset")
+
+  @@index([uploadedBy])
+  @@index([sourceId])
+  @@index([dataType])
+  @@index([origin])
+  @@index([qualityStatus])
+  @@index([createdAt])
+  @@map("datasets")
+}
+
+// ──────────────────────────────────────
+//  4. ImportJob
+// ──────────────────────────────────────
+model ImportJob {
+  id              String    @id @default(uuid()) @db.Uuid
+  sourceId        String?   @map("source_id") @db.Uuid
+  datasetId       String?   @map("dataset_id") @db.Uuid
+  triggeredBy     String    @map("triggered_by") @db.Uuid
+  status          String    @default("queued") @db.VarChar(20) // queued, in_progress, completed, failed
+  progressPercent Int       @default(0) @map("progress_percent")
+  fileName        String?   @map("file_name") @db.VarChar(300)
+  fileSizeBytes   BigInt?   @map("file_size_bytes")
+  errorMessage    String?   @map("error_message") @db.Text
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  source  DataSource? @relation(fields: [sourceId], references: [id])
+  dataset Dataset?    @relation(fields: [datasetId], references: [id])
+  user    User        @relation(fields: [triggeredBy], references: [id])
+
+  @@index([triggeredBy])
+  @@index([sourceId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("import_jobs")
+}
+
+// ──────────────────────────────────────
+//  5. AnalysisPipeline
+// ──────────────────────────────────────
+model AnalysisPipeline {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String    @db.VarChar(200)
+  description     String?   @db.Text
+  status          String    @default("draft") @db.VarChar(20) // draft, ready, running, completed, failed
+  executionConfig Json?     @map("execution_config") @db.JsonB
+  createdBy       String    @map("created_by") @db.Uuid
+  lastRunAt       DateTime? @map("last_run_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  creator     User                 @relation(fields: [createdBy], references: [id])
+  nodes       PipelineNode[]
+  connections PipelineConnection[]
+  results     AnalysisResult[]
+
+  @@index([createdBy])
+  @@index([status])
+  @@index([createdAt])
+  @@map("analysis_pipelines")
+}
+
+// ──────────────────────────────────────
+//  6. PipelineNode
+// ──────────────────────────────────────
+model PipelineNode {
+  id             String  @id @default(uuid()) @db.Uuid
+  pipelineId     String  @map("pipeline_id") @db.Uuid
+  label          String  @db.VarChar(150)
+  nodeType       String  @map("node_type") @db.VarChar(20)  // input, transform, output
+  operation      String  @db.VarChar(100) // ndvi_calc, random_forest, etc.
+  config         Json?   @db.JsonB
+  positionX      Float   @map("position_x")
+  positionY      Float   @map("position_y")
+  inputDatasetId String? @map("input_dataset_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  pipeline       AnalysisPipeline     @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  inputDataset   Dataset?             @relation(fields: [inputDatasetId], references: [id])
+  outConnections PipelineConnection[] @relation("SourceNode")
+  inConnections  PipelineConnection[] @relation("TargetNode")
+
+  @@index([pipelineId])
+  @@index([inputDatasetId])
+  @@index([nodeType])
+  @@map("pipeline_nodes")
+}
+
+// ──────────────────────────────────────
+//  7. PipelineConnection
+// ──────────────────────────────────────
+model PipelineConnection {
+  id           String @id @default(uuid()) @db.Uuid
+  pipelineId   String @map("pipeline_id") @db.Uuid
+  sourceNodeId String @map("source_node_id") @db.Uuid
+  targetNodeId String @map("target_node_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  pipeline   AnalysisPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  sourceNode PipelineNode     @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode PipelineNode     @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceNodeId, targetNodeId])
+  @@index([pipelineId])
+  @@map("pipeline_connections")
+}
+
+// ──────────────────────────────────────
+//  8. AnalysisResult
+// ──────────────────────────────────────
+model AnalysisResult {
+  id                  String   @id @default(uuid()) @db.Uuid
+  pipelineId          String   @map("pipeline_id") @db.Uuid
+  status              String   @db.VarChar(20) // processing, completed, failed
+  resultType          String   @map("result_type") @db.VarChar(50) // geotiff, csv, json_metrics, vector_layer
+  filePath            String?  @map("file_path") @db.VarChar(500)
+  fileSizeBytes       BigInt?  @map("file_size_bytes")
+  summaryMetrics      Json?    @map("summary_metrics") @db.JsonB
+  executionDurationMs Int?     @map("execution_duration_ms")
+  errorMessage        String?  @map("error_message") @db.Text
+  generatedDatasetId  String?  @unique @map("generated_dataset_id") @db.Uuid
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  // Relations
+  pipeline         AnalysisPipeline @relation(fields: [pipelineId], references: [id])
+  generatedDataset Dataset?         @relation("GeneratedDataset", fields: [generatedDatasetId], references: [id])
+  mapLayers        MapLayer[]
+  reports          Report[]
+
+  @@index([pipelineId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("analysis_results")
+}
+
+// ──────────────────────────────────────
+//  9. MapLayer
+// ──────────────────────────────────────
+model MapLayer {
+  id               String  @id @default(uuid()) @db.Uuid
+  name             String  @db.VarChar(200)
+  description      String? @db.VarChar(500)
+  layerType        String  @map("layer_type") @db.VarChar(50) // raster, vector, heatmap, point_cloud
+  datasetId        String? @map("dataset_id") @db.Uuid
+  analysisResultId String? @map("analysis_result_id") @db.Uuid
+  renderConfig     Json    @map("render_config") @db.JsonB
+  isVisible        Boolean @default(true) @map("is_visible")
+  sortOrder        Int     @default(0) @map("sort_order")
+  createdBy        String  @map("created_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  dataset        Dataset?        @relation(fields: [datasetId], references: [id])
+  analysisResult AnalysisResult? @relation(fields: [analysisResultId], references: [id])
+  creator        User            @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@index([datasetId])
+  @@index([analysisResultId])
+  @@map("map_layers")
+}
+
+// ──────────────────────────────────────
+//  10. Report
+// ──────────────────────────────────────
+model Report {
+  id               String   @id @default(uuid()) @db.Uuid
+  title            String   @db.VarChar(300)
+  description      String?  @db.Text
+  reportType       String   @map("report_type") @db.VarChar(50) // yield_analysis, soil_health, ndvi_index, etc.
+  outputFormat     String   @map("output_format") @db.VarChar(20) // pdf, csv, xlsx
+  filePath         String?  @map("file_path") @db.VarChar(500)
+  fileSizeBytes    BigInt?  @map("file_size_bytes")
+  status           String   @default("queued") @db.VarChar(20) // queued, processing, completed, failed
+  datasetId        String?  @map("dataset_id") @db.Uuid
+  analysisResultId String?  @map("analysis_result_id") @db.Uuid
+  generatedBy      String   @map("generated_by") @db.Uuid
+  errorMessage     String?  @map("error_message") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  dataset        Dataset?        @relation(fields: [datasetId], references: [id])
+  analysisResult AnalysisResult? @relation(fields: [analysisResultId], references: [id])
+  generator      User            @relation(fields: [generatedBy], references: [id])
+
+  @@index([generatedBy])
+  @@index([status])
+  @@index([datasetId])
+  @@index([analysisResultId])
+  @@index([createdAt])
+  @@map("reports")
+}
