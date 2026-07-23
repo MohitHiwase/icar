@@ -19,16 +19,20 @@ import morgan from 'morgan';
 import { config } from './config';
 import { logger, NotFoundError } from './lib';
 import { errorHandler } from './middleware';
+import path from 'path';
 import { authRouter } from './modules/auth';
 import { dataSourceRouter } from './modules/data-sources';
 import { datasetRouter } from './modules/datasets';
 import { uploadRouter } from './modules/upload';
+import { mapRouter } from './modules/map';
 
 export function createApp(): express.Application {
   const app = express();
 
   // ── Security ──────────────────────────
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
   app.use(cors({
     origin: config.corsOrigin,
     credentials: true,
@@ -40,6 +44,9 @@ export function createApp(): express.Application {
 
   // ── Compression ───────────────────────
   app.use(compression());
+
+  // ── Static Files ──────────────────────
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // ── Request Logging ───────────────────
   const morganStream = {
@@ -61,6 +68,7 @@ export function createApp(): express.Application {
   app.use('/api/data-sources', dataSourceRouter);
   app.use('/api/datasets', datasetRouter);
   app.use('/api/upload', uploadRouter);
+  app.use('/api/map', mapRouter);
 
   // Future routes:
   //   app.use('/api/datasets',   datasetRouter);

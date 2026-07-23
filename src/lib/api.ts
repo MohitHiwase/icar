@@ -412,4 +412,13 @@ export const datasetsApi = {
   },
 };
 
+export interface MapDatasetItem extends DatasetItem {
+  fileUrl?: string;
+}
+
+export const mapApi = {
+  getDatasets: () =>
+    request<{ datasets: MapDatasetItem[]; count: number }>("/map/datasets"),
+};
+
 export { ApiError };
