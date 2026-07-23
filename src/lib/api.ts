@@ -181,4 +181,79 @@ export const authApi = {
   },
 };
 
+// ── Data Sources API ──
+
+export interface DataSourceItem {
+  id: string;
+  name: string;
+  type: "API" | "MANUAL" | "DATABASE" | "CLOUD_STORAGE";
+  provider: string;
+  baseUrl?: string | null;
+  authConfig?: string | null;
+  status: "active" | "offline" | "error";
+  lastSyncAt?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  _count?: {
+    datasets: number;
+    importJobs: number;
+  };
+}
+
+export const dataSourcesApi = {
+  getAll: (params?: { type?: string; status?: string; search?: string }) => {
+    const cleanParams: Record<string, string> = {};
+    if (params?.type) cleanParams.type = params.type;
+    if (params?.status) cleanParams.status = params.status;
+    if (params?.search) cleanParams.search = params.search;
+    const query = new URLSearchParams(cleanParams).toString();
+    return request<{ dataSources: DataSourceItem[]; count: number }>(
+      `/data-sources${query ? `?${query}` : ""}`
+    );
+  },
+
+  getById: (id: string) =>
+    request<{ dataSource: DataSourceItem }>(`/data-sources/${id}`),
+
+  create: (data: {
+    name: string;
+    type: "API" | "MANUAL" | "DATABASE" | "CLOUD_STORAGE";
+    provider: string;
+    baseUrl?: string;
+    authConfig?: any;
+    status?: "active" | "offline" | "error";
+  }) =>
+    request<{ dataSource: DataSourceItem }>("/data-sources", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (
+    id: string,
+    data: Partial<{
+      name: string;
+      type: "API" | "MANUAL" | "DATABASE" | "CLOUD_STORAGE";
+      provider: string;
+      baseUrl?: string;
+      authConfig?: any;
+      status?: "active" | "offline" | "error";
+    }>
+  ) =>
+    request<{ dataSource: DataSourceItem }>(`/data-sources/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    request<{ message: string }>(`/data-sources/${id}`, {
+      method: "DELETE",
+    }),
+};
+
 export { ApiError };

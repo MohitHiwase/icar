@@ -20,6 +20,7 @@ import { config } from './config';
 import { logger, NotFoundError } from './lib';
 import { errorHandler } from './middleware';
 import { authRouter } from './modules/auth';
+import { dataSourceRouter } from './modules/data-sources';
 
 export function createApp(): express.Application {
   const app = express();
@@ -55,6 +56,7 @@ export function createApp(): express.Application {
 
   // ── API Routes ────────────────────────
   app.use('/api/auth', authRouter);
+  app.use('/api/data-sources', dataSourceRouter);
 
   // Future routes:
   //   app.use('/api/datasets',   datasetRouter);
