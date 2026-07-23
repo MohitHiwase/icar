@@ -56,7 +56,7 @@ export default function Page() {
   const [pulses, setPulses] = useState<Pulse[]>(MOCK_PULSES);
 
   return (
-    <div className="min-min-h-[calc(100vh-72px)] bg-[#F8FAFC] text-on-surface font-body-md overflow-x-hidden w-full">
+    <div className="min-h-[calc(100vh-72px)] bg-[var(--bg-app)] text-[var(--text-main)] font-body-md overflow-x-hidden w-full transition-colors duration-200">
       <div dangerouslySetInnerHTML={{ __html: `
         <style>
         .material-symbols-outlined {
@@ -71,7 +71,7 @@ export default function Page() {
             background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
+            background: var(--border-subtle);
             border-radius: 10px;
         }
         .elevation-1 {
@@ -79,30 +79,29 @@ export default function Page() {
         }
         </style>
       ` }} />
-      
-      {/*  Header  */}
-      
 
       {/*  Main Content  */}
-      <main className=" pt-24 px-8 pb-12 min-min-h-[calc(100vh-72px)]">
+      <main className="py-8 px-8 min-h-[calc(100vh-72px)]">
         <div className="max-w-[1600px] mx-auto space-y-6">
           {/*  Stats Row  */}
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map(stat => (
-              <div key={stat.id} className="bg-white p-6 rounded-2xl border border-white shadow-sm flex flex-col justify-between">
+              <div key={stat.id} className="bg-[var(--bg-surface)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary">
+                    <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
                       <span className="material-symbols-outlined text-[22px]">{stat.icon}</span>
                     </div>
-                    <span className="text-body-md font-semibold text-on-surface">{stat.title}</span>
+                    <span className="text-body-md font-semibold text-[var(--text-main)]">{stat.title}</span>
                   </div>
                 </div>
                 <div>
                   <div className="flex items-baseline gap-2">
-                    <span className="font-headline-lg text-[28px] font-bold text-on-surface">{stat.value}</span>
+                    <span className="text-[28px] font-bold text-[var(--text-main)]">{stat.value}</span>
                   </div>
-                  {stat.subContent}
+                  <div className="mt-2 text-xs text-[var(--text-muted)]">
+                    {stat.subContent}
+                  </div>
                 </div>
               </div>
             ))}
@@ -111,17 +110,17 @@ export default function Page() {
           {/*  Main Layout Grid  */}
           <div className="grid grid-cols-12 gap-6">
             {/*  Main Content Column  */}
-            <div className="col-span-9 space-y-6">
+            <div className="col-span-12 lg:col-span-9 space-y-6">
               {/*  Reports Table Section  */}
-              <div className="bg-white rounded-2xl border border-white shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-surface-container flex items-center justify-between">
-                  <h3 className="font-headline-md text-[20px] font-semibold text-on-surface">Recent Reports</h3>
-                  <div className="flex items-center gap-4">
-                    <div className="relative w-72">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
-                      <input className="w-full pl-10 pr-4 py-2 rounded-xl border border-outline-variant bg-surface text-body-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all" placeholder="Search report name..." type="text" />
+              <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-subtle)] shadow-xs overflow-hidden">
+                <div className="px-6 py-5 border-b border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4">
+                  <h3 className="text-xl font-bold tracking-tight text-[var(--text-main)]">Recent Reports</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-64">
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">search</span>
+                      <input className="w-full pl-9 pr-4 py-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-app)] text-[var(--text-main)] text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" placeholder="Search report name..." type="text" />
                     </div>
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-outline-variant rounded-xl text-on-surface font-semibold hover:bg-surface-container-low transition-all text-body-md">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-main)] font-semibold hover:bg-[var(--bg-surface-hover)] transition-all text-sm">
                       <span className="material-symbols-outlined text-[18px]">filter_list</span>
                       Filter
                     </button>
@@ -130,55 +129,55 @@ export default function Page() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-surface-container-low/30">
-                        <th className="px-8 py-4 text-[11px] font-bold text-outline uppercase tracking-widest">Report Title</th>
-                        <th className="px-8 py-4 text-[11px] font-bold text-outline uppercase tracking-widest">Date Generated</th>
-                        <th className="px-8 py-4 text-[11px] font-bold text-outline uppercase tracking-widest">Type</th>
-                        <th className="px-8 py-4 text-[11px] font-bold text-outline uppercase tracking-widest">Status</th>
-                        <th className="px-8 py-4 text-[11px] font-bold text-outline uppercase tracking-widest text-right">Actions</th>
+                      <tr className="bg-[var(--bg-app)] border-b border-[var(--border-subtle)]">
+                        <th className="px-6 py-3.5 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Report Title</th>
+                        <th className="px-6 py-3.5 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Date Generated</th>
+                        <th className="px-6 py-3.5 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Type</th>
+                        <th className="px-6 py-3.5 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3.5 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-surface-container">
+                    <tbody className="divide-y divide-[var(--border-subtle)]">
                       {reports.map((report) => (
-                        <tr key={report.id} className="hover:bg-surface-container-low/20 transition-colors group">
-                          <td className="px-8 py-5">
+                        <tr key={report.id} className="hover:bg-[var(--bg-surface-hover)] transition-colors group">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center text-primary">
+                              <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                                 <span className="material-symbols-outlined text-[20px]">{report.icon}</span>
                               </div>
                               <div>
-                                <p className="font-bold text-on-surface text-body-md">{report.title}</p>
-                                <p className="text-[12px] text-outline">{report.desc}</p>
+                                <p className="font-bold text-[var(--text-main)] text-sm">{report.title}</p>
+                                <p className="text-xs text-[var(--text-muted)]">{report.desc}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-8 py-5 text-body-md text-on-surface-variant font-data-mono">{report.date}</td>
-                          <td className="px-8 py-5">
-                            <span className={`px-2.5 py-1 text-[11px] font-bold rounded uppercase ${report.typeClass}`}>{report.type}</span>
+                          <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)]">{report.date}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-2.5 py-1 text-[10px] font-bold rounded uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">{report.type}</span>
                           </td>
-                          <td className="px-8 py-5">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${report.statusColorClass}`}></span>
-                              <span className="text-body-md text-on-surface font-medium">{report.statusText}</span>
+                              <span className={`w-2 h-2 rounded-full ${report.isProcessing ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                              <span className="text-xs text-[var(--text-main)] font-medium">{report.statusText}</span>
                             </div>
                           </td>
-                          <td className="px-8 py-5 text-right">
+                          <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-1">
                               {!report.isProcessing ? (
                                 <>
-                                  <button className="p-2 hover:bg-surface-container-high rounded-lg text-primary transition-colors" title="Export PDF">
-                                    <span className="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+                                  <button className="p-1.5 hover:bg-[var(--bg-app)] rounded-lg text-emerald-500 transition-colors" title="Export PDF">
+                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                   </button>
-                                  <button className="p-2 hover:bg-surface-container-high rounded-lg text-primary transition-colors" title="Export Excel">
-                                    <span className="material-symbols-outlined text-[20px]">table_chart</span>
+                                  <button className="p-1.5 hover:bg-[var(--bg-app)] rounded-lg text-emerald-500 transition-colors" title="Export Excel">
+                                    <span className="material-symbols-outlined text-[18px]">table_chart</span>
                                   </button>
-                                  <button className="p-2 hover:bg-surface-container-high rounded-lg text-outline transition-colors">
-                                    <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                                  <button className="p-1.5 hover:bg-[var(--bg-app)] rounded-lg text-[var(--text-muted)] transition-colors">
+                                    <span className="material-symbols-outlined text-[18px]">more_vert</span>
                                   </button>
                                 </>
                               ) : (
-                                <button className="p-2 opacity-50 cursor-not-allowed">
-                                  <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
+                                <button className="p-1.5 opacity-50 cursor-not-allowed text-[var(--text-muted)]">
+                                  <span className="material-symbols-outlined text-[18px]">hourglass_top</span>
                                 </button>
                               )}
                             </div>
@@ -188,34 +187,34 @@ export default function Page() {
                     </tbody>
                   </table>
                 </div>
-                <div className="px-8 py-5 border-t border-surface-container flex items-center justify-between">
-                  <span className="text-body-md text-on-surface-variant font-medium">Showing 1-4 of 1,248 reports</span>
-                  <div className="flex items-center gap-2">
-                    <button className="p-1.5 hover:bg-surface-container-low rounded-lg border border-outline-variant disabled:opacity-30 transition-colors" disabled>
-                      <span className="material-symbols-outlined">chevron_left</span>
+                <div className="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-muted)] font-medium">Showing 1-4 of 1,248 reports</span>
+                  <div className="flex items-center gap-1.5">
+                    <button className="p-1.5 hover:bg-[var(--bg-surface-hover)] rounded-lg border border-[var(--border-subtle)] disabled:opacity-30 transition-colors text-[var(--text-muted)]" disabled>
+                      <span className="material-symbols-outlined text-sm">chevron_left</span>
                     </button>
-                    <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-on-primary text-body-md font-bold shadow-sm">1</button>
-                    <button className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-body-md font-medium text-on-surface-variant transition-colors">2</button>
-                    <button className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-low text-body-md font-medium text-on-surface-variant transition-colors">3</button>
-                    <button className="p-1.5 hover:bg-surface-container-low rounded-lg border border-outline-variant transition-colors">
-                      <span className="material-symbols-outlined">chevron_right</span>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-600 text-white font-bold shadow-xs text-xs">1</button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--bg-surface-hover)] text-xs font-medium text-[var(--text-muted)] transition-colors">2</button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--bg-surface-hover)] text-xs font-medium text-[var(--text-muted)] transition-colors">3</button>
+                    <button className="p-1.5 hover:bg-[var(--bg-surface-hover)] rounded-lg border border-[var(--border-subtle)] transition-colors text-[var(--text-muted)]">
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/*  Right Column (Featured & Sidebar Widgets)  */}
-            <div className="col-span-3 space-y-6">
+            {/*  Right Column  */}
+            <div className="col-span-12 lg:col-span-3 space-y-6">
               {/*  Insight AI Card  */}
-              <div className="bg-primary-container text-on-primary-container p-6 rounded-2xl relative overflow-hidden shadow-sm">
+              <div className="bg-emerald-600 text-white p-6 rounded-2xl relative overflow-hidden shadow-xs">
                 <div className="relative z-10">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="material-symbols-outlined text-[20px]">psychology</span>
-                    <h4 className="font-semibold text-[18px]">Insight AI</h4>
+                    <h4 className="font-bold text-[18px]">Insight AI</h4>
                   </div>
-                  <p className="text-body-md opacity-90 mb-6 leading-relaxed">Your next Yield Analysis is scheduled for automated generation in 48 hours.</p>
-                  <button className="px-5 py-2.5 bg-white text-primary rounded-xl font-bold text-body-md hover:bg-opacity-90 transition-all shadow-sm">
+                  <p className="text-xs opacity-90 mb-6 leading-relaxed">Your next Yield Analysis is scheduled for automated generation in 48 hours.</p>
+                  <button className="px-4 py-2 bg-white text-emerald-700 rounded-xl font-bold text-xs hover:bg-opacity-90 transition-all shadow-xs">
                     Review Schedule
                   </button>
                 </div>
@@ -225,50 +224,46 @@ export default function Page() {
               </div>
 
               {/*  Active Pulses List  */}
-              <div className="bg-white p-6 rounded-2xl border border-white shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h4 className="font-semibold text-[18px] text-on-surface">Active Pulses</h4>
-                  <span className="text-primary font-bold text-[13px] cursor-pointer hover:underline">View all</span>
+              <div className="bg-[var(--bg-surface)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-bold text-base text-[var(--text-main)]">Active Pulses</h4>
+                  <span className="text-emerald-500 font-bold text-xs cursor-pointer hover:underline">View all</span>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {pulses.map((pulse) => (
-                    <div key={pulse.id} className="flex items-start gap-4 p-4 bg-surface-container-low/50 rounded-2xl border border-surface-container-low">
-                      <div className="p-2.5 bg-white rounded-xl shadow-sm text-primary">
-                        <span className="material-symbols-outlined text-[20px]">{pulse.icon}</span>
+                    <div key={pulse.id} className="flex items-start gap-3 p-3.5 bg-[var(--bg-app)] rounded-xl border border-[var(--border-subtle)]">
+                      <div className="p-2 bg-[var(--bg-surface)] rounded-lg shadow-xs text-emerald-500 border border-[var(--border-subtle)]">
+                        <span className="material-symbols-outlined text-[18px]">{pulse.icon}</span>
                       </div>
                       <div className="flex-1">
-                        <p className="font-bold text-on-surface text-body-md leading-tight">{pulse.title}</p>
-                        <p className="text-[12px] text-outline mt-0.5">Next: {pulse.nextRun}</p>
+                        <p className="font-bold text-[var(--text-main)] text-xs leading-tight">{pulse.title}</p>
+                        <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Next: {pulse.nextRun}</p>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer mt-1">
-                        <input defaultChecked={pulse.active} className="sr-only peer" type="checkbox" />
-                        <div className="w-10 h-5.5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-primary"></div>
-                      </label>
                     </div>
                   ))}
                 </div>
-                <button className="w-full mt-6 py-3 border border-dashed border-outline-variant rounded-2xl text-on-surface-variant font-bold text-body-md hover:bg-surface-container-low transition-colors">
+                <button className="w-full mt-4 py-2.5 border border-dashed border-[var(--border-subtle)] rounded-xl text-[var(--text-muted)] font-semibold text-xs hover:bg-[var(--bg-surface-hover)] transition-colors">
                   + Add New Pulse
                 </button>
               </div>
 
               {/*  Data Health Widget  */}
-              <div className="bg-white p-6 rounded-2xl border border-white shadow-sm">
-                <div className="flex items-center justify-between mb-6">
-                  <h4 className="font-semibold text-[18px] text-on-surface">Data Health</h4>
-                  <span className="material-symbols-outlined text-primary">check_circle</span>
+              <div className="bg-[var(--bg-surface)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-bold text-base text-[var(--text-main)]">Data Health</h4>
+                  <span className="material-symbols-outlined text-emerald-500">check_circle</span>
                 </div>
-                <div className="relative w-40 h-40 mx-auto flex items-center justify-center mb-6">
+                <div className="relative w-36 h-36 mx-auto flex items-center justify-center mb-4">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle className="text-surface-container" cx="50%" cy="50%" fill="transparent" r="42%" stroke="currentColor" strokeWidth="10"></circle>
-                    <circle className="text-primary" cx="50%" cy="50%" fill="transparent" r="42%" stroke="currentColor" strokeDasharray="264" strokeDashoffset="52.8" strokeLinecap="round" strokeWidth="10"></circle>
+                    <circle className="text-[var(--border-subtle)]" cx="50%" cy="50%" fill="transparent" r="42%" stroke="currentColor" strokeWidth="8"></circle>
+                    <circle className="text-emerald-500" cx="50%" cy="50%" fill="transparent" r="42%" stroke="currentColor" strokeDasharray="264" strokeDashoffset="52.8" strokeLinecap="round" strokeWidth="8"></circle>
                   </svg>
                   <div className="absolute text-center">
-                    <p className="font-headline-lg text-[32px] font-bold text-on-surface">80%</p>
-                    <p className="text-[11px] text-outline uppercase font-bold tracking-widest">Accuracy</p>
+                    <p className="text-2xl font-bold text-[var(--text-main)]">80%</p>
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase font-semibold tracking-wider">Accuracy</p>
                   </div>
                 </div>
-                <p className="text-center text-[13px] leading-relaxed text-on-surface-variant font-medium px-2">Geospatial data validation is current for the latest report batch.</p>
+                <p className="text-center text-xs leading-relaxed text-[var(--text-muted)] px-2">Geospatial data validation is current for the latest report batch.</p>
               </div>
             </div>
           </div>

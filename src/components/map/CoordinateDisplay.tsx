@@ -15,22 +15,22 @@ export function CoordinateDisplay({
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-      <div className="bg-white/90 backdrop-blur-md px-6 py-2.5 rounded-2xl shadow-xl border border-white/70 flex items-center gap-6 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[18px]">location_on</span>
-          <span className="font-semibold text-on-surface-variant">Cursor Coords:</span>
+      <div className="bg-[var(--bg-surface)]/90 backdrop-blur-md px-5 py-2 rounded-xl shadow-lg border border-[var(--border-subtle)] flex items-center gap-5 text-xs text-[var(--text-main)]">
+        <div className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-emerald-500 text-[16px]">location_on</span>
+          <span className="font-semibold text-[var(--text-muted)] text-[11px]">Cursor Coords:</span>
         </div>
-        <div className="flex items-center gap-4 font-mono font-bold text-on-surface">
+        <div className="flex items-center gap-3 font-mono text-[11px] font-bold">
           <div>
-            <span className="text-[10px] text-on-surface-variant font-normal mr-1">LAT:</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-normal mr-1">LAT:</span>
             <span>{formatCoord(latitude)}°</span>
           </div>
           <div>
-            <span className="text-[10px] text-on-surface-variant font-normal mr-1">LNG:</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-normal mr-1">LNG:</span>
             <span>{formatCoord(longitude)}°</span>
           </div>
           <div>
-            <span className="text-[10px] text-on-surface-variant font-normal mr-1">ALT:</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-normal mr-1">ALT:</span>
             <span>{altitude !== null ? `${Math.round(altitude)} m` : "—"}</span>
           </div>
         </div>

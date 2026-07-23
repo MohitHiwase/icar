@@ -14,8 +14,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 let accessToken: string | null = null;
 
 export function getAccessToken(): string | null {
-  if (!accessToken && typeof window !== "undefined") {
-    accessToken = localStorage.getItem("geovision_access_token");
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("geovision_access_token");
+    if (token && token !== "null" && token !== "undefined") {
+      return token;
+    }
   }
   return accessToken;
 }
@@ -30,7 +33,10 @@ export function setTokens(access: string, refresh: string) {
 
 export function getRefreshToken(): string | null {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("geovision_refresh_token");
+    const token = localStorage.getItem("geovision_refresh_token");
+    if (token && token !== "null" && token !== "undefined") {
+      return token;
+    }
   }
   return null;
 }
@@ -91,12 +97,26 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    // If 401 and we have a refresh token, try to refresh
-    if (res.status === 401 && getRefreshToken() && !endpoint.includes("/refresh")) {
+    // If 401 and not an auth endpoint, try to refresh
+    if (
+      res.status === 401 &&
+      !endpoint.includes("/auth/refresh") &&
+      !endpoint.includes("/auth/login") &&
+      !endpoint.includes("/auth/register")
+    ) {
       const refreshed = await tryRefresh();
       if (refreshed) {
         // Retry original request with new token
         return request<T>(endpoint, options);
+      } else {
+        clearTokens();
+        if (
+          typeof window !== "undefined" &&
+          !window.location.pathname.startsWith("/login") &&
+          !window.location.pathname.startsWith("/register")
+        ) {
+          window.location.href = "/login";
+        }
       }
     }
     throw new ApiError(

@@ -14,7 +14,7 @@ import RouteGuard from "@/components/RouteGuard";
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <RouteGuard>
-      <div className="flex h-screen overflow-hidden bg-[#F8FAFC] text-on-surface font-inter">
+      <div className="flex h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-main)] font-inter transition-colors duration-200">
         {/* Fixed Left Sidebar */}
         <Sidebar />
         

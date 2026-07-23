@@ -136,15 +136,15 @@ export default function DataSourcesPage() {
   const getSourceTypeBadge = (type: string) => {
     switch (type) {
       case "API":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">API Portal</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">API Portal</span>;
       case "MANUAL":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-secondary-container text-secondary border border-secondary/20">Manual Upload</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">Manual Upload</span>;
       case "DATABASE":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-tertiary/10 text-tertiary border border-tertiary/20">Database</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">Database</span>;
       case "CLOUD_STORAGE":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant border border-outline/20">Cloud Storage</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">Cloud Storage</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">{type}</span>;
+        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--bg-surface-hover)] text-[var(--text-muted)] border border-[var(--border-subtle)]">{type}</span>;
     }
   };
 
@@ -152,22 +152,22 @@ export default function DataSourcesPage() {
     switch (status) {
       case "active":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Active
           </div>
         );
       case "offline":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-error/10 text-error border border-error/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-error" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             Offline
           </div>
         );
       case "error":
         return (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             Error
           </div>
         );
@@ -177,31 +177,31 @@ export default function DataSourcesPage() {
   };
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto space-y-6 text-[var(--text-main)] transition-colors duration-200">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-on-surface flex items-center gap-3">
-            <span className="material-symbols-outlined text-primary text-3xl">hub</span>
-            Data Sources Management
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-emerald-500 text-[26px]">hub</span>
+            Data Sources Workspace
           </h1>
-          <p className="text-on-surface-variant text-sm mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Configure external portals and manual upload channels for geospatial data ingestion.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchSources}
-            className="p-2.5 border border-outline/30 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition flex items-center justify-center"
+            className="p-2 border border-[var(--border-subtle)] rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-surface-hover)] transition flex items-center justify-center"
             title="Refresh Data Sources"
           >
-            <span className={`material-symbols-outlined ${loading ? "animate-spin" : ""}`}>refresh</span>
+            <span className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}>refresh</span>
           </button>
           <button
             onClick={handleOpenCreate}
-            className="px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition flex items-center gap-2 shadow-sm text-sm"
+            className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition flex items-center gap-1.5 shadow-xs text-xs"
           >
-            <span className="material-symbols-outlined text-[20px]">add</span>
+            <span className="material-symbols-outlined text-[18px]">add</span>
             Connect Data Source
           </button>
         </div>
@@ -209,7 +209,7 @@ export default function DataSourcesPage() {
 
       {/* Main Error Alert */}
       {error && (
-        <div className="p-4 bg-error/10 border border-error/30 rounded-xl flex items-center justify-between text-error text-sm">
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between text-red-600 dark:text-red-400 text-sm">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-[22px]">error</span>
             <span>{error}</span>
@@ -222,47 +222,47 @@ export default function DataSourcesPage() {
 
       {/* Overview Metric Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 elevation-1 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+        <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">hub</span>
           </div>
           <div>
-            <p className="text-xs text-on-surface-variant font-medium">Total Configured</p>
-            <h3 className="text-2xl font-bold text-on-surface mt-0.5">{sources.length}</h3>
+            <p className="text-xs text-[var(--text-muted)] font-medium">Total Configured</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)] mt-0.5">{sources.length}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 elevation-1 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+        <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">api</span>
           </div>
           <div>
-            <p className="text-xs text-on-surface-variant font-medium">API Portals</p>
-            <h3 className="text-2xl font-bold text-on-surface mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] font-medium">API Portals</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)] mt-0.5">
               {sources.filter((s) => s.type === "API").length}
             </h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 elevation-1 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-secondary-container text-secondary flex items-center justify-center">
+        <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">upload_file</span>
           </div>
           <div>
-            <p className="text-xs text-on-surface-variant font-medium">Manual Uploads</p>
-            <h3 className="text-2xl font-bold text-on-surface mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] font-medium">Manual Uploads</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)] mt-0.5">
               {sources.filter((s) => s.type === "MANUAL").length}
             </h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-outline-variant/30 elevation-1 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center">
+        <div className="bg-[var(--bg-surface)] p-5 rounded-2xl border border-[var(--border-subtle)] shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <span className="material-symbols-outlined text-[24px]">check_circle</span>
           </div>
           <div>
-            <p className="text-xs text-on-surface-variant font-medium">Active Channels</p>
-            <h3 className="text-2xl font-bold text-on-surface mt-0.5">
+            <p className="text-xs text-[var(--text-muted)] font-medium">Active Channels</p>
+            <h3 className="text-2xl font-bold text-[var(--text-main)] mt-0.5">
               {sources.filter((s) => s.status === "active").length}
             </h3>
           </div>
@@ -270,17 +270,17 @@ export default function DataSourcesPage() {
       </div>
 
       {/* Format Capabilities Info Banner */}
-      <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 elevation-1 space-y-3">
-        <div className="flex items-center gap-2 text-primary font-semibold text-sm">
+      <div className="bg-[var(--bg-surface)] p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
           <span className="material-symbols-outlined text-[20px]">dataset</span>
           <span>Supported Format Ingestion Channels</span>
         </div>
-        <p className="text-xs text-on-surface-variant leading-relaxed">
+        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
           GeoVision Data Sources handle automated API integrations and manual uploads. Supported file formats for manual ingestion include:
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {["CSV", "Excel (.xlsx)", "GeoJSON", "Shapefile (.shp)", "GeoTIFF", "COG", "JP2", "PNG", "JPG", "JPEG"].map((fmt) => (
-            <span key={fmt} className="px-3 py-1 bg-[#f0f7f5] text-primary font-medium text-xs rounded-lg border border-primary/15">
+            <span key={fmt} className="px-3 py-1 bg-[var(--bg-surface-hover)] text-emerald-600 dark:text-emerald-400 font-medium text-xs rounded-lg border border-[var(--border-subtle)]">
               {fmt}
             </span>
           ))}
@@ -288,7 +288,7 @@ export default function DataSourcesPage() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-outline-variant/30 elevation-1">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[var(--bg-surface)] p-4 rounded-2xl border border-[var(--border-subtle)] shadow-xs">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
           {[
             { id: "ALL", label: "All Types" },
@@ -302,8 +302,8 @@ export default function DataSourcesPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                 activeTab === tab.id
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-on-surface-variant hover:bg-surface-container-low"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-main)]"
               }`}
             >
               {tab.label}
@@ -312,7 +312,7 @@ export default function DataSourcesPage() {
         </div>
 
         <div className="relative w-full sm:w-72">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">
             search
           </span>
           <input
@@ -320,24 +320,24 @@ export default function DataSourcesPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search data sources..."
-            className="w-full pl-10 pr-4 py-2 border border-outline/30 rounded-xl text-xs text-on-surface bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full pl-10 pr-4 py-2 border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] bg-[var(--bg-surface)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
           />
         </div>
       </div>
 
       {/* Main Data Sources Table / Loading / Empty State */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-outline-variant/30 p-16 flex flex-col items-center justify-center text-center">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-          <p className="text-sm font-medium text-on-surface-variant">Loading Data Sources...</p>
+        <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-subtle)] p-16 flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4" />
+          <p className="text-sm font-medium text-[var(--text-muted)]">Loading Data Sources...</p>
         </div>
       ) : filteredSources.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-outline-variant/30 p-16 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center text-on-surface-variant mb-4">
+        <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-subtle)] p-16 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-[var(--bg-surface-hover)] rounded-full flex items-center justify-center text-[var(--text-muted)] mb-4">
             <span className="material-symbols-outlined text-[32px]">hub</span>
           </div>
-          <h3 className="text-lg font-bold text-on-surface mb-1">No data sources configured yet</h3>
-          <p className="text-xs text-on-surface-variant max-w-sm mb-6">
+          <h3 className="text-lg font-bold text-[var(--text-main)] mb-1">No data sources configured yet</h3>
+          <p className="text-xs text-[var(--text-muted)] max-w-sm mb-6">
             {sources.length === 0
               ? "Connect your first external API portal, manual upload channel, or database."
               : "No data sources match your current filter or search criteria."}
@@ -345,7 +345,7 @@ export default function DataSourcesPage() {
           {sources.length === 0 ? (
             <button
               onClick={handleOpenCreate}
-              className="px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition text-sm flex items-center gap-2"
+              className="px-4 py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition text-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
               Connect Your First Data Source
@@ -356,18 +356,18 @@ export default function DataSourcesPage() {
                 setActiveTab("ALL");
                 setSearchTerm("");
               }}
-              className="px-4 py-2 bg-surface-container-high text-on-surface font-semibold rounded-lg text-xs hover:bg-surface-container-highest transition"
+              className="px-4 py-2 bg-[var(--bg-surface-hover)] text-[var(--text-main)] border border-[var(--border-subtle)] font-semibold rounded-lg text-xs hover:bg-[var(--border-subtle)] transition"
             >
               Reset Filters
             </button>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-outline-variant/30 overflow-hidden elevation-1">
+        <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-subtle)] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container-low border-b border-outline-variant/40 text-xs font-semibold text-on-surface-variant">
+                <tr className="bg-[var(--bg-surface-hover)] border-b border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-muted)]">
                   <th className="px-6 py-4">Data Source Name</th>
                   <th className="px-6 py-4">Type</th>
                   <th className="px-6 py-4">Provider / Channel</th>
@@ -377,12 +377,12 @@ export default function DataSourcesPage() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/30 text-sm">
+              <tbody className="divide-y divide-[var(--border-subtle)] text-sm">
                 {filteredSources.map((source) => (
-                  <tr key={source.id} className="hover:bg-surface-container-low/40 transition">
-                    <td className="px-6 py-4 font-semibold text-on-surface">
+                  <tr key={source.id} className="hover:bg-[var(--bg-surface-hover)] transition">
+                    <td className="px-6 py-4 font-semibold text-[var(--text-main)]">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
                           <span className="material-symbols-outlined text-[20px]">
                             {source.type === "API"
                               ? "api"
@@ -394,9 +394,9 @@ export default function DataSourcesPage() {
                           </span>
                         </div>
                         <div>
-                          <div className="font-semibold text-on-surface">{source.name}</div>
+                          <div className="font-semibold text-[var(--text-main)]">{source.name}</div>
                           {source.creator && (
-                            <div className="text-[11px] text-on-surface-variant font-normal">
+                            <div className="text-[11px] text-[var(--text-muted)] font-normal">
                               By {source.creator.name}
                             </div>
                           )}
@@ -404,12 +404,12 @@ export default function DataSourcesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">{getSourceTypeBadge(source.type)}</td>
-                    <td className="px-6 py-4 font-medium text-on-surface-variant">{source.provider}</td>
-                    <td className="px-6 py-4 font-mono text-xs text-on-surface-variant max-w-xs truncate">
+                    <td className="px-6 py-4 font-medium text-[var(--text-main)]">{source.provider}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-[var(--text-muted)] max-w-xs truncate">
                       {source.baseUrl || "N/A (Local / Internal)"}
                     </td>
                     <td className="px-6 py-4">{getStatusBadge(source.status)}</td>
-                    <td className="px-6 py-4 text-xs text-on-surface-variant">
+                    <td className="px-6 py-4 text-xs text-[var(--text-muted)]">
                       {new Date(source.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -419,14 +419,14 @@ export default function DataSourcesPage() {
                     <td className="px-6 py-4 text-right space-x-1">
                       <button
                         onClick={() => handleOpenEdit(source)}
-                        className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition"
                         title="Edit Data Source"
                       >
                         <span className="material-symbols-outlined text-[18px]">edit</span>
                       </button>
                       <button
                         onClick={() => setDeletingSource(source)}
-                        className="p-2 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 transition"
                         title="Delete Data Source"
                       >
                         <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -442,20 +442,20 @@ export default function DataSourcesPage() {
 
       {/* Create Modal */}
       {isCreateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[var(--bg-surface)] rounded-2xl max-w-md w-full p-6 shadow-xl border border-[var(--border-subtle)] text-[var(--text-main)] animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">add_circle</span>
+              <h3 className="text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-500">add_circle</span>
                 Connect New Data Source
               </h3>
-              <button onClick={() => setIsCreateOpen(false)} className="text-on-surface-variant hover:text-on-surface">
+              <button onClick={() => setIsCreateOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
             {modalError && (
-              <div className="mb-4 p-3 bg-error/10 text-error text-xs rounded-lg flex items-center gap-2">
+              <div className="mb-4 p-3 bg-red-500/10 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-center gap-2 border border-red-500/30">
                 <span className="material-symbols-outlined text-[16px]">error</span>
                 <span>{modalError}</span>
               </div>
@@ -463,20 +463,20 @@ export default function DataSourcesPage() {
 
             <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-on-surface mb-1">Data Source Name *</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Data Source Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Sentinel-2 Imagery Feed"
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-on-surface mb-1">Source Type *</label>
+                  <label className="block font-medium text-[var(--text-main)] mb-1">Source Type *</label>
                   <select
                     value={formData.type}
                     onChange={(e) =>
@@ -485,7 +485,7 @@ export default function DataSourcesPage() {
                         type: e.target.value as any,
                       })
                     }
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                   >
                     <option value="API">API Portal</option>
                     <option value="MANUAL">Manual Upload</option>
@@ -495,7 +495,7 @@ export default function DataSourcesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-on-surface mb-1">Status</label>
+                  <label className="block font-medium text-[var(--text-main)] mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) =>
@@ -504,7 +504,7 @@ export default function DataSourcesPage() {
                         status: e.target.value as any,
                       })
                     }
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                   >
                     <option value="active">Active</option>
                     <option value="offline">Offline</option>
@@ -514,25 +514,25 @@ export default function DataSourcesPage() {
               </div>
 
               <div>
-                <label className="block font-medium text-on-surface mb-1">Provider / Portal Name *</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Provider / Portal Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.provider}
                   onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
                   placeholder="e.g. Bhuvan, Sentinel Hub, IMD, Custom Upload"
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-on-surface mb-1">Base URL / Endpoint (Optional)</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Base URL / Endpoint (Optional)</label>
                 <input
                   type="url"
                   value={formData.baseUrl}
                   onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
                   placeholder="https://services.sentinel-hub.com/api/v1"
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
@@ -540,14 +540,14 @@ export default function DataSourcesPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 border border-outline/30 rounded-lg font-semibold text-on-surface hover:bg-surface-container-low transition"
+                  className="px-4 py-2 border border-[var(--border-subtle)] rounded-lg font-semibold text-[var(--text-main)] hover:bg-[var(--bg-surface-hover)] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition flex items-center gap-1.5"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition flex items-center gap-1.5"
                 >
                   {submitting ? "Saving..." : "Save Data Source"}
                 </button>
@@ -559,20 +559,20 @@ export default function DataSourcesPage() {
 
       {/* Edit Modal */}
       {editingSource && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[var(--bg-surface)] rounded-2xl max-w-md w-full p-6 shadow-xl border border-[var(--border-subtle)] text-[var(--text-main)] animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">edit</span>
+              <h3 className="text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-500">edit</span>
                 Edit Data Source
               </h3>
-              <button onClick={() => setEditingSource(null)} className="text-on-surface-variant hover:text-on-surface">
+              <button onClick={() => setEditingSource(null)} className="text-[var(--text-muted)] hover:text-[var(--text-main)]">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
             {modalError && (
-              <div className="mb-4 p-3 bg-error/10 text-error text-xs rounded-lg flex items-center gap-2">
+              <div className="mb-4 p-3 bg-red-500/10 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-center gap-2 border border-red-500/30">
                 <span className="material-symbols-outlined text-[16px]">error</span>
                 <span>{modalError}</span>
               </div>
@@ -580,19 +580,19 @@ export default function DataSourcesPage() {
 
             <form onSubmit={handleUpdateSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-medium text-on-surface mb-1">Data Source Name *</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Data Source Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-medium text-on-surface mb-1">Source Type *</label>
+                  <label className="block font-medium text-[var(--text-main)] mb-1">Source Type *</label>
                   <select
                     value={formData.type}
                     onChange={(e) =>
@@ -601,7 +601,7 @@ export default function DataSourcesPage() {
                         type: e.target.value as any,
                       })
                     }
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                   >
                     <option value="API">API Portal</option>
                     <option value="MANUAL">Manual Upload</option>
@@ -611,7 +611,7 @@ export default function DataSourcesPage() {
                 </div>
 
                 <div>
-                  <label className="block font-medium text-on-surface mb-1">Status</label>
+                  <label className="block font-medium text-[var(--text-main)] mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) =>
@@ -620,7 +620,7 @@ export default function DataSourcesPage() {
                         status: e.target.value as any,
                       })
                     }
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                    className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                   >
                     <option value="active">Active</option>
                     <option value="offline">Offline</option>
@@ -630,23 +630,23 @@ export default function DataSourcesPage() {
               </div>
 
               <div>
-                <label className="block font-medium text-on-surface mb-1">Provider / Portal Name *</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Provider / Portal Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.provider}
                   onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-on-surface mb-1">Base URL / Endpoint</label>
+                <label className="block font-medium text-[var(--text-main)] mb-1">Base URL / Endpoint</label>
                 <input
                   type="url"
                   value={formData.baseUrl}
                   onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-                  className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-3 py-2 border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-main)] rounded-lg text-xs focus:ring-2 focus:ring-emerald-500/30"
                 />
               </div>
 
@@ -654,14 +654,14 @@ export default function DataSourcesPage() {
                 <button
                   type="button"
                   onClick={() => setEditingSource(null)}
-                  className="px-4 py-2 border border-outline/30 rounded-lg font-semibold text-on-surface hover:bg-surface-container-low transition"
+                  className="px-4 py-2 border border-[var(--border-subtle)] rounded-lg font-semibold text-[var(--text-main)] hover:bg-[var(--bg-surface-hover)] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition flex items-center gap-1.5"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition flex items-center gap-1.5"
                 >
                   {submitting ? "Updating..." : "Update Data Source"}
                 </button>
@@ -673,26 +673,26 @@ export default function DataSourcesPage() {
 
       {/* Delete Confirmation Modal */}
       {deletingSource && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95 text-center">
-            <div className="w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mx-auto mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[var(--bg-surface)] rounded-2xl max-w-sm w-full p-6 shadow-xl border border-[var(--border-subtle)] text-center animate-in fade-in zoom-in-95 text-[var(--text-main)]">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-[24px]">delete_forever</span>
             </div>
-            <h3 className="text-lg font-bold text-on-surface mb-1">Delete Data Source?</h3>
-            <p className="text-xs text-on-surface-variant mb-6">
-              Are you sure you want to delete <span className="font-semibold text-on-surface">{deletingSource.name}</span>? This action cannot be undone.
+            <h3 className="text-lg font-bold text-[var(--text-main)] mb-1">Delete Data Source?</h3>
+            <p className="text-xs text-[var(--text-muted)] mb-6">
+              Are you sure you want to delete <span className="font-semibold text-[var(--text-main)]">{deletingSource.name}</span>? This action cannot be undone.
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setDeletingSource(null)}
-                className="px-4 py-2 border border-outline/30 rounded-lg font-semibold text-xs text-on-surface hover:bg-surface-container-low transition"
+                className="px-4 py-2 border border-[var(--border-subtle)] rounded-lg font-semibold text-xs text-[var(--text-main)] hover:bg-[var(--bg-surface-hover)] transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={submitting}
-                className="px-4 py-2 bg-error text-white rounded-lg font-semibold text-xs hover:bg-error/90 transition"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-xs hover:bg-red-700 transition"
               >
                 {submitting ? "Deleting..." : "Confirm Delete"}
               </button>

@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import DashboardMapWrapper from '@/components/DashboardMapWrapper';
 
-// Data Interfaces
 interface KPIData {
   id: string;
   title: string;
@@ -11,9 +11,7 @@ interface KPIData {
   subValue?: string;
   subText: string;
   icon: string;
-  colorClass: string;
-  bgClass: string;
-  hasPulse?: boolean;
+  trend: 'up' | 'neutral' | 'pulse';
 }
 
 interface Activity {
@@ -22,278 +20,239 @@ interface Activity {
   subtitle: string;
   timeAgo: string;
   icon: string;
-  iconColorClass: string;
-  bgClass: string;
-  statusDotClass: string;
+  statusColor: string;
 }
 
-interface Opportunity {
+interface SpatialOpportunity {
   id: string;
   siteName: string;
   details: string;
   suitability: number;
   value: string;
   readiness: string;
-  readinessClass: string;
+  readinessBadge: string;
   ownerName: string;
-  ownerAvatar: string;
 }
 
-// Initial Placeholders for API Data
 const MOCK_KPIS: KPIData[] = [
-  { id: 'kpi-1', title: 'Active Projects', value: '142', subValue: '12%', subText: 'vs last 7 days', icon: 'account_tree', colorClass: 'text-primary', bgClass: 'bg-primary/5' },
-  { id: 'kpi-2', title: 'Budget Utilization', value: '84.2%', subText: 'FY24 Period', icon: 'payments', colorClass: 'text-secondary', bgClass: 'bg-secondary-container/30' },
-  { id: 'kpi-3', title: 'System Health', value: '99.8%', subText: 'Operational', icon: 'analytics', colorClass: 'text-primary-container', bgClass: 'bg-on-primary-container/20', hasPulse: true },
-  { id: 'kpi-4', title: 'Risk Exposure', value: 'Low', subText: 'requires attention', icon: 'warning', colorClass: 'text-error', bgClass: 'bg-error/10' }
+  { id: 'kpi-1', title: 'Active Datasets', value: '28', subValue: '+4', subText: 'added this week', icon: 'dataset', trend: 'up' },
+  { id: 'kpi-2', title: 'Spatial Extent Coverage', value: '1.42M ha', subValue: '99.4%', subText: 'telemetry confidence', icon: 'map', trend: 'up' },
+  { id: 'kpi-3', title: 'GIS Engine Health', value: '99.9%', subText: 'CesiumJS 3D Active', icon: 'speed', trend: 'pulse' },
+  { id: 'kpi-4', title: 'Connected Sources', value: '5 Live', subText: 'Sentinel-2, Bhuvan, IMD', icon: 'hub', trend: 'neutral' }
 ];
 
 const MOCK_ACTIVITIES: Activity[] = [
-  { id: 'act-1', title: 'Site Comparison Exported', subtitle: 'Portfolio / Southwest Region', timeAgo: '24 mins ago', icon: 'cloud_upload', iconColorClass: 'text-primary', bgClass: 'bg-[#e6f3f0]', statusDotClass: 'bg-primary' },
-  { id: 'act-2', title: 'Risk threshold exceeded', subtitle: 'Grid maintenance at Copper Basin.', timeAgo: '1 hour ago', icon: 'priority_high', iconColorClass: 'text-error', bgClass: 'bg-error-container/40', statusDotClass: 'bg-error' },
-  { id: 'act-3', title: 'New Stakeholder Added', subtitle: 'Elena Rossi added to project.', timeAgo: '4 hours ago', icon: 'person', iconColorClass: 'text-on-surface-variant', bgClass: 'bg-surface-container-high', statusDotClass: 'bg-secondary' }
+  { id: 'act-1', title: 'GeoJSON Dataset Ingested', subtitle: 'Iowa River Farm • 1,240 acres', timeAgo: '12 mins ago', icon: 'upload_file', statusColor: 'bg-emerald-500' },
+  { id: 'act-2', title: 'Sentinel-2 Tile Refreshed', subtitle: 'Sector IN-MH-402 • 10m Multispectral', timeAgo: '45 mins ago', icon: 'satellite_alt', statusColor: 'bg-teal-500' },
+  { id: 'act-3', title: 'Feature Inspection Completed', subtitle: 'Parcel #AR-9022 • Soil Nitrogen Vector', timeAgo: '2 hours ago', icon: 'pin_drop', statusColor: 'bg-emerald-500' }
 ];
 
-const MOCK_OPPORTUNITIES: Opportunity[] = [
-  { id: 'opp-1', siteName: 'Mesa Ridge', details: 'AZ-042 • 146 acres', suitability: 89, value: '$42.8M', readiness: 'HIGH', readinessClass: 'bg-primary/10 text-primary', ownerName: 'John D.', ownerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC4FDRXENHk1G4LbkWahtz90oT96h9pbO2ziFr6RV8DbQc7NBF9rx_H0oiWQutDBDLNM8TqwrkCpgDXJiIAPwXaiZ0O-nhq6f1sylo8IrK8vjtzOERhEG-kIVQ6fQuqDv01AGGjt6VDAdMCFfayAS114TVr5Zn5b_HVmzEXn96bQ_Eepr_NdakIBPtiwlmxG-p7xyhev51rrMq2R4XmIUxNyEMXtmARsHVcIvJxpVX6o9VBS66PyB0OrfKqeH1v35dRn3D6kxSRuBU' },
-  { id: 'opp-2', siteName: 'Copper Basin', details: 'AZ-087 • 210 acres', suitability: 72, value: '$39.6M', readiness: 'MED', readinessClass: 'bg-secondary-container/40 text-secondary', ownerName: 'Sarah K.', ownerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDth7VH0Y1HCD0ojzB6uITqaZmPF0AiQPEhnIF-pu3ql35JAHT9O6HSbjEzOYNPas0PRPEVTinUYRsGzkK7iwzpvc5X7QaYLPN0ikJ0jsaEbF0wJ3VNrlBBiFfmlMJjzLzHfuW-cLws2gXv1awK4K_0mFvGzlDZSzbMMQXeMG-Rl62SkFjCt9VL3u_4e0oinoyeP8kmPz9ZQF3PZ37_bT9_kDFVaTJavnndkH1o81XDTDeSFeVzcmjggE3IGUvPvuWt2bRdFazfv_k' }
+const MOCK_OPPORTUNITIES: SpatialOpportunity[] = [
+  { id: 'opp-1', siteName: 'Karnal Wheat Research Plot', details: 'HR-012 • 450 acres', suitability: 94, value: 'High Yield Potential', readiness: 'ACTIVE', readinessBadge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', ownerName: 'Dr. V. Sharma (GeoVision)' },
+  { id: 'opp-2', siteName: 'Mesa Delta Irrigation Basin', details: 'AZ-087 • 1,120 acres', suitability: 82, value: 'NDVI Stress Detected', readiness: 'MONITORING', readinessBadge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20', ownerName: 'S. Kulkarni (GeoVision Node)' }
 ];
 
 export default function Page() {
-  const [kpis, setKpis] = useState<KPIData[]>(MOCK_KPIS);
-  const [activities, setActivities] = useState<Activity[]>(MOCK_ACTIVITIES);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>(MOCK_OPPORTUNITIES);
+  const [kpis] = useState<KPIData[]>(MOCK_KPIS);
+  const [activities] = useState<Activity[]>(MOCK_ACTIVITIES);
+  const [opportunities] = useState<SpatialOpportunity[]>(MOCK_OPPORTUNITIES);
 
   return (
-    <div className="min-min-h-[calc(100vh-72px)] bg-[#F8FAFC] text-on-surface font-body-md overflow-x-hidden w-full">
-      <div dangerouslySetInnerHTML={{ __html: `
-        <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
-            border-radius: 10px;
-        }
-        .elevation-1 {
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        </style>
-      ` }} />
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto text-[var(--text-main)] transition-colors duration-200">
       
-      {/*  Main Content Shell  */}
-      <main className="w-full min-h-[calc(100vh-72px)] flex flex-col">
-        {/*  Top Navigation Bar  */}
-        
-        
-        {/*  Dashboard Canvas  */}
-        <section className="p-10 overflow-y-auto flex-1 custom-scrollbar">
-          {/*  Date Selector  */}
-          <div className="mb-6 flex justify-end">
-            <div className="flex gap-3">
-              <div className="bg-white border border-outline-variant/30 px-4 py-2 rounded-lg flex items-center gap-3 text-sm font-medium cursor-pointer">
-                <span className="material-symbols-outlined text-lg text-on-surface-variant">calendar_today</span>
-                <span className="">May 20 – May 27, 2024</span>
-                <span className="material-symbols-outlined text-lg text-on-surface-variant">expand_more</span>
+      {/* Top Welcome Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight">GeoVision Command Center</h1>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase">
+              Production Node
+            </span>
+          </div>
+          <p className="text-xs text-[var(--text-muted)]">
+            Unified geospatial integration workspace • GeoVision telemetry node active
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/gis-map"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">map</span>
+            Open GIS Workspace
+          </Link>
+          <Link
+            href="/datasets"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] text-[var(--text-main)] rounded-lg text-xs font-semibold transition-all"
+          >
+            <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+            Import Dataset
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((kpi) => (
+          <div
+            key={kpi.id}
+            className="bg-[var(--bg-surface)] p-4 rounded-xl border border-[var(--border-subtle)] shadow-xs flex flex-col justify-between"
+          >
+            <div className="flex items-start justify-between">
+              <span className="text-xs font-medium text-[var(--text-muted)]">{kpi.title}</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[18px]">{kpi.icon}</span>
               </div>
             </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold tracking-tight font-mono">{kpi.value}</span>
+                {kpi.subValue && (
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center">
+                    {kpi.subValue}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1 flex items-center gap-1">
+                {kpi.trend === 'pulse' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                )}
+                {kpi.subText}
+              </p>
+            </div>
           </div>
-          
-          {/*  KPI Cards Grid  */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {kpis.map((kpi) => (
-              <div key={kpi.id} className="bg-white p-6 rounded-xl elevation-1 border border-outline-variant/20">
-                <div className="flex gap-4 items-start">
-                  <div className={`p-2.5 ${kpi.bgClass} rounded-lg ${kpi.colorClass}`}>
-                    <span className="material-symbols-outlined text-[24px]">{kpi.icon}</span>
+        ))}
+      </div>
+
+      {/* Main Grid: Cesium Viewer Preview + Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Cesium Map Widget */}
+        <div className="lg:col-span-8 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs overflow-hidden flex flex-col min-h-[480px]">
+          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <h3 className="text-sm font-semibold">Live GIS Map Preview</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono text-[var(--text-muted)]">Cesium 3D Engine</span>
+              <Link
+                href="/gis-map"
+                className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
+              >
+                Expand Workspace
+                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+          <div className="flex-1 relative bg-[var(--bg-app)] min-h-[380px]">
+            <DashboardMapWrapper />
+          </div>
+        </div>
+
+        {/* Recent Telemetry & Activity Stream */}
+        <div className="lg:col-span-4 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs flex flex-col">
+          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <h3 className="text-sm font-semibold">System Stream & Activity</h3>
+            <span className="text-[10.5px] font-mono uppercase bg-[var(--bg-surface-hover)] px-2 py-0.5 rounded text-[var(--text-muted)] border border-[var(--border-subtle)]">
+              Real-time
+            </span>
+          </div>
+          <div className="p-4 space-y-4 flex-1">
+            {activities.map((act) => (
+              <div
+                key={act.id}
+                className="flex items-start gap-3 p-2.5 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] transition-all"
+              >
+                <div className="w-8 h-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">{act.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold truncate">{act.title}</p>
+                    <span className="text-[10px] text-[var(--text-faint)] shrink-0 font-mono">{act.timeAgo}</span>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-on-surface-variant text-sm font-medium mb-1">{kpi.title}</p>
-                    <div className="flex items-end gap-2">
-                      <h3 className="text-[28px] font-semibold text-on-surface leading-none">{kpi.value}</h3>
-                      {kpi.subValue && (
-                        <span className="text-[12px] font-bold text-primary flex items-center mb-1">
-                          <span className="material-symbols-outlined text-sm">north</span>{kpi.subValue}
-                        </span>
-                      )}
-                    </div>
-                    {kpi.hasPulse ? (
-                      <p className={`text-[11px] ${kpi.colorClass} mt-1 font-bold flex items-center gap-1`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${kpi.bgClass.split('/')[0].replace('bg-', 'bg-').split('-container')[0]} bg-primary animate-pulse`}></span> {kpi.subText}
-                      </p>
-                    ) : (
-                      <p className="text-[11px] text-on-surface-variant/60 mt-1">{kpi.subText}</p>
-                    )}
-                  </div>
+                  <p className="text-[11px] text-[var(--text-muted)] truncate mt-0.5">{act.subtitle}</p>
                 </div>
               </div>
             ))}
           </div>
-          
-          {/*  Central Content Section  */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/*  Map Widget  */}
-            <div className="lg:col-span-8 bg-white rounded-xl elevation-1 border border-outline-variant/20 overflow-hidden flex flex-col min-h-[540px]">
-              <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center">
-                <div>
-                  <h4 className="font-semibold text-lg text-on-surface">GeoVision Infrastructure Map</h4>
-                  <p className="text-[13px] text-on-surface-variant">Live view of substation assets and grid connectivity.</p>
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex items-center gap-2 border border-outline-variant/30 rounded-lg px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-surface-container-low">
-                    <span className="">NDVI</span>
-                    <span className="material-symbols-outlined text-lg">expand_more</span>
-                  </div>
-                  <button className="p-2 hover:bg-surface-container-low rounded-lg border border-outline-variant/30">
-                    <span className="material-symbols-outlined text-[20px]">layers</span>
-                  </button>
-                  <button className="p-2 hover:bg-surface-container-low rounded-lg border border-outline-variant/30">
-                    <span className="material-symbols-outlined text-[20px]">fullscreen</span>
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 relative bg-[#EDEEEF] group overflow-hidden">
-                <DashboardMapWrapper />
-                {/*  Overlay Legend  */}
-                <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur p-4 rounded-lg border border-outline-variant/20 elevation-1 z-10">
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="w-3.5 h-3.5 rounded-full bg-primary shadow-sm"></span>
-                      <span className="font-bold text-on-surface">Primary Substation</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="w-3.5 h-3.5 rounded-full bg-secondary shadow-sm"></span>
-                      <span className="font-bold text-on-surface">Service Hub</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+
+          {/* Infrastructure Health Subcard */}
+          <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-hover)] space-y-2 rounded-b-xl">
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
+                Spatial API Gateway
+              </span>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400">100% Operational</span>
             </div>
-            
-            {/*  Recent Activity  */}
-            <div className="lg:col-span-4 bg-white rounded-xl elevation-1 border border-outline-variant/20 flex flex-col h-full">
-              <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center">
-                <h4 className="font-semibold text-lg text-on-surface">Recent Activity</h4>
-                <span className="text-sm font-bold text-primary cursor-pointer hover:underline">View all</span>
-              </div>
-              <div className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="flex gap-4">
-                    <div className={`w-10 h-10 rounded-lg ${activity.bgClass} flex items-center justify-center shrink-0 ${activity.iconColorClass}`}>
-                      <span className="material-symbols-outlined text-[20px]">{activity.icon}</span>
+            <div className="flex items-center justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
+                Database Node
+              </span>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400">Connected (PostgreSQL)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Spatial Targets & Research Parcels Table */}
+      <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-emerald-600 dark:text-emerald-400">pin_drop</span>
+            <h3 className="text-sm font-semibold">Priority Agricultural Parcels & Research Extents</h3>
+          </div>
+          <Link
+            href="/datasets"
+            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+          >
+            View Data Catalog
+          </Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[var(--bg-surface-hover)] text-[10.5px] uppercase tracking-wider font-mono font-semibold text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
+                <th className="px-5 py-2.5">Site Extent</th>
+                <th className="px-5 py-2.5">Confidence</th>
+                <th className="px-5 py-2.5">GIS Status</th>
+                <th className="px-5 py-2.5">Readiness</th>
+                <th className="px-5 py-2.5">Node Owner</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border-subtle)] text-xs">
+              {opportunities.map((opp) => (
+                <tr key={opp.id} className="hover:bg-[var(--bg-surface-hover)] transition-colors">
+                  <td className="px-5 py-3 font-semibold">
+                    <div>
+                      <p className="text-xs text-[var(--text-main)] font-semibold">{opp.siteName}</p>
+                      <p className="text-[10.5px] text-[var(--text-muted)] font-mono">{opp.details}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
-                        <p className="text-sm font-bold text-on-surface truncate">{activity.title}</p>
-                        <span className={`w-2 h-2 rounded-full ${activity.statusDotClass} mt-1.5 shrink-0`}></span>
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-[var(--border-subtle)] rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${opp.suitability}%` }}></div>
                       </div>
-                      <p className="text-[13px] text-on-surface-variant mt-0.5">{activity.subtitle}</p>
-                      <p className="text-[11px] text-on-surface-variant/60 mt-1.5">{activity.timeAgo}</p>
+                      <span className="font-mono font-bold text-[11px]">{opp.suitability}%</span>
                     </div>
-                  </div>
-                ))}
-              </div>
-              {/*  System Status Micro-widget  */}
-              <div className="p-6 border-t border-outline-variant/10">
-                <h5 className="text-[13px] font-bold text-on-surface mb-4">System Status</h5>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <div className="flex items-center gap-2.5">
-                      <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
-                      <span className="text-on-surface-variant">All Systems Operational</span>
-                    </div>
-                    <span className="font-medium text-on-surface-variant">99.9% uptime</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[13px]">
-                    <div className="flex items-center gap-2.5">
-                      <span className="material-symbols-outlined text-primary text-lg">check_circle</span>
-                      <span className="text-on-surface-variant">Data Processing</span>
-                    </div>
-                    <span className="font-medium text-on-surface-variant">Real-time</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/*  Bottom Data Table Section  */}
-          <div className="mt-8 bg-white rounded-xl elevation-1 border border-outline-variant/20 overflow-hidden">
-            <div className="p-6 border-b border-outline-variant/10 flex items-center justify-between">
-              <h4 className="font-semibold text-lg text-on-surface">GeoVision Priority Opportunities</h4>
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2 border border-outline-variant/30 rounded-lg px-3 py-1 text-sm font-medium cursor-pointer">
-                  <span className="">All Regions</span>
-                  <span className="material-symbols-outlined text-lg">expand_more</span>
-                </div>
-                <button className="text-sm font-bold text-primary hover:bg-primary/5 px-4 py-1 rounded-lg transition-colors">Export CSV</button>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-surface-container-low/40 text-[11px] uppercase tracking-wider font-bold text-on-surface-variant">
-                    <th className="px-8 py-4">Site Name</th>
-                    <th className="px-8 py-4">Suitability</th>
-                    <th className="px-8 py-4">Est. Value</th>
-                    <th className="px-8 py-4">Readiness</th>
-                    <th className="px-8 py-4">Owner</th>
-                    <th className="px-8 py-4 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {opportunities.map((opp) => (
-                    <tr key={opp.id} className="hover:bg-surface-variant/10 transition-colors group">
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded bg-[#e6f3f0] flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary">home_pin</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-on-surface">{opp.siteName}</p>
-                            <p className="text-[11px] text-on-surface-variant">{opp.details}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-24 bg-surface-container-high rounded-full h-1.5">
-                            <div className="bg-primary h-full rounded-full" style={{ width: `${opp.suitability}%` }}></div>
-                          </div>
-                          <span className="text-[13px] font-mono font-bold">{opp.suitability}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-sm font-bold text-on-surface">{opp.value}</td>
-                      <td className="px-8 py-5">
-                        <span className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${opp.readinessClass}`}>
-                          {opp.readiness}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-2">
-                          <img className="w-6 h-6 rounded-full object-cover" alt={opp.ownerName} src={opp.ownerAvatar} />
-                          <span className="text-[13px] font-medium">{opp.ownerName}</span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-right">
-                        <button className="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary">
-                          <span className="material-symbols-outlined">chevron_right</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      </main>
+                  </td>
+                  <td className="px-5 py-3 text-[11.5px] font-medium text-[var(--text-muted)]">{opp.value}</td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${opp.readinessBadge}`}>
+                      {opp.readiness}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-[11.5px] font-medium text-[var(--text-muted)]">{opp.ownerName}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
-
-const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
-  subsets: ["latin"],
-});
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,8 +15,8 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GeoVision",
-  description: "GeoVision Dashboard",
+  title: "GeoVision — Enterprise Geospatial Analytics Platform",
+  description: "Unified Geospatial Integration and AI Analytics Platform",
 };
 
 export default function RootLayout({
@@ -31,15 +27,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${hanken.variable} ${inter.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrains.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="h-full bg-[#F8FAFC] text-on-surface font-inter">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+      <body className="h-full bg-[var(--bg-app)] text-[var(--text-main)] font-inter antialiased transition-colors duration-200">
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -19,7 +19,7 @@ export function LayerItem({
 }: LayerItemProps) {
   const getFormatBadge = (fmt: string) => {
     return (
-      <span className="px-1.5 py-0.5 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded uppercase">
+      <span className="px-1.5 py-0.5 bg-[var(--bg-surface-hover)] text-[var(--text-muted)] text-[10px] font-mono font-bold rounded uppercase border border-[var(--border-subtle)]">
         {fmt}
       </span>
     );
@@ -27,18 +27,18 @@ export function LayerItem({
 
   return (
     <div
-      className={`p-3 rounded-xl border transition-all ${
+      className={`p-3 rounded-lg border transition-all ${
         isVisible
-          ? "bg-primary/10 border-primary/30 shadow-xs"
-          : "bg-surface-container-low border-outline-variant/30 hover:bg-surface-container"
+          ? "bg-emerald-500/10 border-emerald-500/30 text-[var(--text-main)] shadow-xs"
+          : "bg-[var(--bg-app)] border-[var(--border-subtle)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-muted)]"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <button
             onClick={() => onToggleVisibility(layer.id)}
-            className={`p-1.5 rounded-lg transition ${
-              isVisible ? "text-primary bg-primary/15" : "text-on-surface-variant hover:text-on-surface"
+            className={`p-1.5 rounded-md transition ${
+              isVisible ? "text-emerald-500 bg-emerald-500/15" : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
             }`}
             title={isVisible ? "Hide Layer" : "Show Layer"}
           >
@@ -48,10 +48,10 @@ export function LayerItem({
           </button>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-xs text-on-surface truncate">{layer.name}</span>
+              <span className="font-semibold text-xs text-[var(--text-main)] truncate">{layer.name}</span>
               {getFormatBadge(layer.fileFormat)}
             </div>
-            <p className="text-[10px] text-on-surface-variant truncate">
+            <p className="text-[10px] text-[var(--text-muted)] truncate">
               {layer.uploader?.name || "System"} • {new Date(layer.createdAt).toLocaleDateString()}
             </p>
           </div>
@@ -60,14 +60,14 @@ export function LayerItem({
         <div className="flex items-center gap-1">
           <button
             onClick={() => onZoomTo(layer.id)}
-            className="p-1 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition"
+            className="p-1 rounded text-[var(--text-muted)] hover:text-emerald-500 hover:bg-emerald-500/10 transition"
             title="Zoom to Extent"
           >
             <span className="material-symbols-outlined text-[16px]">my_location</span>
           </button>
           <button
             onClick={() => onDelete(layer.id)}
-            className="p-1 rounded-lg text-on-surface-variant hover:text-error hover:bg-error/10 transition"
+            className="p-1 rounded text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition"
             title="Delete Layer Dataset"
           >
             <span className="material-symbols-outlined text-[16px]">delete</span>

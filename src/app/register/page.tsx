@@ -74,60 +74,60 @@ export default function RegisterPage() {
       <AuthBrandingPanel />
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[var(--bg-app)] text-[var(--text-main)] transition-colors duration-200">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden mb-10">
             <GeoVisionLogo variant="light" size="sm" />
           </div>
 
-          <h2 className="text-2xl font-bold text-on-surface mb-2">Create your account</h2>
-          <p className="text-on-surface-variant text-sm mb-8">
+          <h2 className="text-2xl font-bold tracking-tight mb-2">Create your account</h2>
+          <p className="text-[var(--text-muted)] text-sm mb-8">
             Start exploring geospatial intelligence today
           </p>
 
           {displayError && (
-            <div className="mb-6 p-3.5 bg-error/8 border border-error/20 rounded-lg flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-error text-[20px] mt-0.5">error</span>
-              <p className="text-error text-sm">{displayError}</p>
+            <div className="mb-6 p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-rose-500 text-[20px] mt-0.5">error</span>
+              <p className="text-rose-500 text-sm">{displayError}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Full Name</label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Full Name</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">person</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">person</span>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 border border-outline/40 rounded-lg bg-white text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Email</label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Email</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">mail</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">mail</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-10 pr-4 py-2.5 border border-outline/40 rounded-lg bg-white text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Password</label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Password</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">lock</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">lock</span>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -135,12 +135,12 @@ export default function RegisterPage() {
                   placeholder="At least 8 characters"
                   required
                   minLength={8}
-                  className="w-full pl-10 pr-12 py-2.5 border border-outline/40 rounded-lg bg-white text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  className="w-full pl-10 pr-12 py-2.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition"
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     {showPassword ? "visibility_off" : "visibility"}
@@ -150,9 +150,9 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Confirm Password</label>
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1.5 uppercase tracking-wider">Confirm Password</label>
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">lock</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] text-[20px]">lock</span>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
@@ -160,7 +160,7 @@ export default function RegisterPage() {
                   placeholder="Re-enter password"
                   required
                   minLength={8}
-                  className="w-full pl-10 pr-4 py-2.5 border border-outline/40 rounded-lg bg-white text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                  className="w-full pl-10 pr-4 py-2.5 border border-[var(--border-subtle)] rounded-lg bg-[var(--bg-surface)] text-sm text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
                 />
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/30 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xs text-sm"
             >
               {submitting ? (
                 <>
@@ -181,9 +181,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-on-surface-variant mt-8">
+          <p className="text-center text-xs text-[var(--text-muted)] mt-8">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            <Link href="/login" className="text-emerald-500 font-semibold hover:underline">
               Sign in
             </Link>
           </p>

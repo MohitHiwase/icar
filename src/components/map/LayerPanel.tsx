@@ -27,20 +27,20 @@ export function LayerPanel({
 
   return (
     <div className="absolute left-6 top-6 w-80 z-20 space-y-3 animate-in fade-in slide-in-from-left-4 duration-200">
-      <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/70 p-4 space-y-4">
+      <div className="bg-[var(--bg-surface)]/90 backdrop-blur-md rounded-xl shadow-lg border border-[var(--border-subtle)] p-4 space-y-4 text-[var(--text-main)]">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
             <span className="material-symbols-outlined text-[20px]">layers</span>
             <span>Map Layers</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full">
+            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold rounded border border-emerald-500/20">
               {visibleLayerIds.size} / {layers.length} Active
             </span>
             <button
               onClick={onClose}
-              className="text-on-surface-variant hover:text-on-surface p-1 rounded-lg"
+              className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded-lg hover:bg-[var(--bg-surface-hover)]"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
@@ -49,19 +49,19 @@ export function LayerPanel({
 
         {/* Layers List */}
         {layers.length === 0 ? (
-          <div className="py-6 px-4 text-center space-y-3 bg-surface-container-low/60 rounded-xl border border-outline-variant/30">
-            <span className="material-symbols-outlined text-on-surface-variant text-[32px]">
+          <div className="py-6 px-4 text-center space-y-3 bg-[var(--bg-app)] rounded-xl border border-[var(--border-subtle)]">
+            <span className="material-symbols-outlined text-[var(--text-muted)] text-[32px]">
               layers_clear
             </span>
             <div>
-              <p className="text-xs font-bold text-on-surface">No map layers available.</p>
-              <p className="text-[11px] text-on-surface-variant mt-0.5">
+              <p className="text-xs font-bold text-[var(--text-main)]">No map layers available.</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                 Import a GeoJSON or geospatial dataset to visualize.
               </p>
             </div>
             <Link
               href="/datasets"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary/90 transition shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition shadow-xs"
             >
               <span className="material-symbols-outlined text-[16px]">upload_file</span>
               Import Dataset
