@@ -1,21 +1,23 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ──────────────────────────────────────
 //  1. User
 // ──────────────────────────────────────
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  name         String   @db.VarChar(100)
-  avatarUrl    String?  @map("avatar_url") @db.VarChar(500)
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         String   @default("user") // user | admin
+  avatarUrl    String?  @map("avatar_url")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -26,28 +28,48 @@ model User {
   analysisPipelines AnalysisPipeline[]
   mapLayers         MapLayer[]
   reports           Report[]
+  refreshTokens     RefreshToken[]
 
+  @@index([role])
   @@map("users")
+}
+
+// ──────────────────────────────────────
+//  1b. RefreshToken
+// ──────────────────────────────────────
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 // ──────────────────────────────────────
 //  2. DataSource
 // ──────────────────────────────────────
 model DataSource {
-  id         String   @id @default(uuid()) @db.Uuid
-  name       String   @db.VarChar(200)
-  type       String   @db.VarChar(50)   // 'API' | 'MANUAL'
-  provider   String   @db.VarChar(100)  // e.g. "Bhuvan", "Sentinel Hub"
-  baseUrl    String?  @map("base_url") @db.VarChar(500)
-  authConfig Json?    @map("auth_config") @db.JsonB
-  status     String   @default("active") @db.VarChar(20) // active | offline | error
+  id         String    @id @default(uuid())
+  name       String
+  type       String    // 'API' | 'MANUAL'
+  provider   String    // e.g. "Bhuvan", "Sentinel Hub"
+  baseUrl    String?   @map("base_url")
+  authConfig String?   @map("auth_config") // JSON string
+  status     String    @default("active") // active | offline | error
   lastSyncAt DateTime? @map("last_sync_at")
-  createdBy  String   @map("created_by") @db.Uuid
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdBy  String    @map("created_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  creator    User       @relation(fields: [createdBy], references: [id])
+  creator    User        @relation(fields: [createdBy], references: [id])
   datasets   Dataset[]
   importJobs ImportJob[]
 
@@ -62,21 +84,21 @@ model DataSource {
 //  3. Dataset  (central entity)
 // ──────────────────────────────────────
 model Dataset {
-  id               String   @id @default(uuid()) @db.Uuid
-  name             String   @db.VarChar(300)
-  description      String?  @db.Text
-  dataType         String   @map("data_type") @db.VarChar(50)   // satellite, climate, soil, etc.
-  fileFormat       String   @map("file_format") @db.VarChar(30)  // csv, geojson, shapefile, geotiff
-  filePath         String   @map("file_path") @db.VarChar(500)
-  fileSizeBytes    BigInt   @map("file_size_bytes")
-  origin           String   @db.VarChar(20) // api_import, manual_upload, merged, analysis_output
-  qualityStatus    String   @default("raw") @map("quality_status") @db.VarChar(20) // raw, cleaned, standardized, merged
-  parentDatasetIds String[] @map("parent_dataset_ids") @db.Uuid
-  metadata         Json?    @db.JsonB
-  sourceId         String?  @map("source_id") @db.Uuid
-  uploadedBy       String   @map("uploaded_by") @db.Uuid
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id               String    @id @default(uuid())
+  name             String
+  description      String?
+  dataType         String    @map("data_type")   // satellite, climate, soil, etc.
+  fileFormat       String    @map("file_format")  // csv, geojson, shapefile, geotiff
+  filePath         String    @map("file_path")
+  fileSizeBytes    BigInt    @map("file_size_bytes")
+  origin           String    // api_import, manual_upload, merged, analysis_output
+  qualityStatus    String    @default("raw") @map("quality_status") // raw, cleaned, standardized, merged
+  parentDatasetIds String?   @map("parent_dataset_ids") // JSON string
+  metadata         String?   // JSON string
+  sourceId         String?   @map("source_id")
+  uploadedBy       String    @map("uploaded_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
   deletedAt        DateTime? @map("deleted_at")
 
   // Relations
@@ -101,15 +123,15 @@ model Dataset {
 //  4. ImportJob
 // ──────────────────────────────────────
 model ImportJob {
-  id              String    @id @default(uuid()) @db.Uuid
-  sourceId        String?   @map("source_id") @db.Uuid
-  datasetId       String?   @map("dataset_id") @db.Uuid
-  triggeredBy     String    @map("triggered_by") @db.Uuid
-  status          String    @default("queued") @db.VarChar(20) // queued, in_progress, completed, failed
+  id              String    @id @default(uuid())
+  sourceId        String?   @map("source_id")
+  datasetId       String?   @map("dataset_id")
+  triggeredBy     String    @map("triggered_by")
+  status          String    @default("queued") // queued, in_progress, completed, failed
   progressPercent Int       @default(0) @map("progress_percent")
-  fileName        String?   @map("file_name") @db.VarChar(300)
+  fileName        String?   @map("file_name")
   fileSizeBytes   BigInt?   @map("file_size_bytes")
-  errorMessage    String?   @map("error_message") @db.Text
+  errorMessage    String?   @map("error_message")
   startedAt       DateTime? @map("started_at")
   completedAt     DateTime? @map("completed_at")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -130,12 +152,12 @@ model ImportJob {
 //  5. AnalysisPipeline
 // ──────────────────────────────────────
 model AnalysisPipeline {
-  id              String    @id @default(uuid()) @db.Uuid
-  name            String    @db.VarChar(200)
-  description     String?   @db.Text
-  status          String    @default("draft") @db.VarChar(20) // draft, ready, running, completed, failed
-  executionConfig Json?     @map("execution_config") @db.JsonB
-  createdBy       String    @map("created_by") @db.Uuid
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  status          String    @default("draft") // draft, ready, running, completed, failed
+  executionConfig String?   @map("execution_config") // JSON string
+  createdBy       String    @map("created_by")
   lastRunAt       DateTime? @map("last_run_at")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
@@ -156,15 +178,15 @@ model AnalysisPipeline {
 //  6. PipelineNode
 // ──────────────────────────────────────
 model PipelineNode {
-  id             String  @id @default(uuid()) @db.Uuid
-  pipelineId     String  @map("pipeline_id") @db.Uuid
-  label          String  @db.VarChar(150)
-  nodeType       String  @map("node_type") @db.VarChar(20)  // input, transform, output
-  operation      String  @db.VarChar(100) // ndvi_calc, random_forest, etc.
-  config         Json?   @db.JsonB
-  positionX      Float   @map("position_x")
-  positionY      Float   @map("position_y")
-  inputDatasetId String? @map("input_dataset_id") @db.Uuid
+  id             String   @id @default(uuid())
+  pipelineId     String   @map("pipeline_id")
+  label          String
+  nodeType       String   @map("node_type")  // input, transform, output
+  operation      String   // ndvi_calc, random_forest, etc.
+  config         String?  // JSON string
+  positionX      Float    @map("position_x")
+  positionY      Float    @map("position_y")
+  inputDatasetId String?  @map("input_dataset_id")
   createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -183,10 +205,10 @@ model PipelineNode {
 //  7. PipelineConnection
 // ──────────────────────────────────────
 model PipelineConnection {
-  id           String @id @default(uuid()) @db.Uuid
-  pipelineId   String @map("pipeline_id") @db.Uuid
-  sourceNodeId String @map("source_node_id") @db.Uuid
-  targetNodeId String @map("target_node_id") @db.Uuid
+  id           String   @id @default(uuid())
+  pipelineId   String   @map("pipeline_id")
+  sourceNodeId String   @map("source_node_id")
+  targetNodeId String   @map("target_node_id")
   createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -203,17 +225,17 @@ model PipelineConnection {
 //  8. AnalysisResult
 // ──────────────────────────────────────
 model AnalysisResult {
-  id                  String   @id @default(uuid()) @db.Uuid
-  pipelineId          String   @map("pipeline_id") @db.Uuid
-  status              String   @db.VarChar(20) // processing, completed, failed
-  resultType          String   @map("result_type") @db.VarChar(50) // geotiff, csv, json_metrics, vector_layer
-  filePath            String?  @map("file_path") @db.VarChar(500)
-  fileSizeBytes       BigInt?  @map("file_size_bytes")
-  summaryMetrics      Json?    @map("summary_metrics") @db.JsonB
-  executionDurationMs Int?     @map("execution_duration_ms")
-  errorMessage        String?  @map("error_message") @db.Text
-  generatedDatasetId  String?  @unique @map("generated_dataset_id") @db.Uuid
-  createdAt           DateTime @default(now()) @map("created_at")
+  id                  String    @id @default(uuid())
+  pipelineId          String    @map("pipeline_id")
+  status              String    // processing, completed, failed
+  resultType          String    @map("result_type") // geotiff, csv, json_metrics, vector_layer
+  filePath            String?   @map("file_path")
+  fileSizeBytes       BigInt?   @map("file_size_bytes")
+  summaryMetrics      String?   @map("summary_metrics") // JSON string
+  executionDurationMs Int?      @map("execution_duration_ms")
+  errorMessage        String?   @map("error_message")
+  generatedDatasetId  String?   @unique @map("generated_dataset_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
 
   // Relations
   pipeline         AnalysisPipeline @relation(fields: [pipelineId], references: [id])
@@ -231,16 +253,16 @@ model AnalysisResult {
 //  9. MapLayer
 // ──────────────────────────────────────
 model MapLayer {
-  id               String  @id @default(uuid()) @db.Uuid
-  name             String  @db.VarChar(200)
-  description      String? @db.VarChar(500)
-  layerType        String  @map("layer_type") @db.VarChar(50) // raster, vector, heatmap, point_cloud
-  datasetId        String? @map("dataset_id") @db.Uuid
-  analysisResultId String? @map("analysis_result_id") @db.Uuid
-  renderConfig     Json    @map("render_config") @db.JsonB
-  isVisible        Boolean @default(true) @map("is_visible")
-  sortOrder        Int     @default(0) @map("sort_order")
-  createdBy        String  @map("created_by") @db.Uuid
+  id               String   @id @default(uuid())
+  name             String
+  description      String?
+  layerType        String   @map("layer_type") // raster, vector, heatmap, point_cloud
+  datasetId        String?  @map("dataset_id")
+  analysisResultId String?  @map("analysis_result_id")
+  renderConfig     String   @map("render_config") // JSON string
+  isVisible        Boolean  @default(true) @map("is_visible")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdBy        String   @map("created_by")
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -259,18 +281,18 @@ model MapLayer {
 //  10. Report
 // ──────────────────────────────────────
 model Report {
-  id               String   @id @default(uuid()) @db.Uuid
-  title            String   @db.VarChar(300)
-  description      String?  @db.Text
-  reportType       String   @map("report_type") @db.VarChar(50) // yield_analysis, soil_health, ndvi_index, etc.
-  outputFormat     String   @map("output_format") @db.VarChar(20) // pdf, csv, xlsx
-  filePath         String?  @map("file_path") @db.VarChar(500)
+  id               String   @id @default(uuid())
+  title            String
+  description      String?
+  reportType       String   @map("report_type") // yield_analysis, soil_health, ndvi_index, etc.
+  outputFormat     String   @map("output_format") // pdf, csv, xlsx
+  filePath         String?  @map("file_path")
   fileSizeBytes    BigInt?  @map("file_size_bytes")
-  status           String   @default("queued") @db.VarChar(20) // queued, processing, completed, failed
-  datasetId        String?  @map("dataset_id") @db.Uuid
-  analysisResultId String?  @map("analysis_result_id") @db.Uuid
-  generatedBy      String   @map("generated_by") @db.Uuid
-  errorMessage     String?  @map("error_message") @db.Text
+  status           String   @default("queued") // queued, processing, completed, failed
+  datasetId        String?  @map("dataset_id")
+  analysisResultId String?  @map("analysis_result_id")
+  generatedBy      String   @map("generated_by")
+  errorMessage     String?  @map("error_message")
   createdAt        DateTime @default(now()) @map("created_at")
 
   // Relations

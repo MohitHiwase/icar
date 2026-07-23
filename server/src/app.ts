@@ -19,6 +19,7 @@ import morgan from 'morgan';
 import { config } from './config';
 import { logger, NotFoundError } from './lib';
 import { errorHandler } from './middleware';
+import { authRouter } from './modules/auth';
 
 export function createApp(): express.Application {
   const app = express();
@@ -53,8 +54,9 @@ export function createApp(): express.Application {
   });
 
   // ── API Routes ────────────────────────
-  // Future routes will be mounted here:
-  //   app.use('/api/auth',       authRouter);
+  app.use('/api/auth', authRouter);
+
+  // Future routes:
   //   app.use('/api/datasets',   datasetRouter);
   //   app.use('/api/sources',    dataSourceRouter);
   //   app.use('/api/pipelines',  pipelineRouter);

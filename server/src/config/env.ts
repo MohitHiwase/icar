@@ -29,9 +29,13 @@ export const config = {
   // Database
   databaseUrl: requireEnv('DATABASE_URL'),
 
-  // JWT
+  // JWT — Access Token
   jwtSecret: requireEnv('JWT_SECRET'),
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
+
+  // JWT — Refresh Token
+  jwtRefreshSecret: requireEnv('JWT_REFRESH_SECRET'),
+  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 
   // File Storage
   uploadDir: path.resolve(process.env.UPLOAD_DIR || './uploads'),

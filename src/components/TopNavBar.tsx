@@ -1,10 +1,25 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 
 export default function TopNavBar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Define defaults for Dashboard and fallback
   let title = "GeoVision Operational Dashboard";
@@ -85,6 +100,8 @@ export default function TopNavBar() {
     subtitle = "Configure your workspace, manage team access, and view your billing cycles.";
   }
 
+  const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
+
   return (
     <header className="h-[72px] shrink-0 bg-white/80 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-10 z-40 sticky top-0 w-full transition-all duration-300">
       
@@ -122,16 +139,42 @@ export default function TopNavBar() {
           
           <div className="h-8 w-[1px] bg-outline-variant/50 mx-2"></div>
 
-          {/* Unified Profile */}
-          <div className="flex items-center gap-3 cursor-pointer group select-none">
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10 group-hover:border-primary/40 transition-all shadow-sm">
-              <img alt="User Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpxkBDkrgOgzQQE4FS8sFp6rW9qCxYUIIaxjUF9LsniNetAWtUKZRH6HFLAuv6va8fdME5VMx94Il_P9UFm0Zdn32sM7WgzAvT2tz4vEf8YAvVjRE3wYO3_9JHS5DtZF5Vlkq1yU68Q1YIDLLU-pnWhEI8qyC2oyYqaUDSP4xE8eNpZ6C4Gz8ozqUXcfkJfXtxPKXZE4gWh7igzchmuaQjb1Xpc8ABLb6XDFx9k54rvtcXa-BQ8rV0p0MWfnr767eywCrDtFmAU14" />
+          {/* Profile + Dropdown */}
+          <div className="relative" ref={menuRef}>
+            <div
+              className="flex items-center gap-3 cursor-pointer group select-none"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/10 group-hover:border-primary/40 transition-all shadow-sm bg-primary/10 flex items-center justify-center">
+                <span className="text-primary font-bold text-sm">{userInitial}</span>
+              </div>
+              <div className="hidden lg:block text-left relative top-[1px]">
+                <p className="text-[13px] font-bold text-on-surface leading-none mb-1">{user?.name || "User"}</p>
+                <p className="text-[10.5px] text-on-surface-variant font-medium leading-none tracking-wide">{user?.email || ""}</p>
+              </div>
+              <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface transition-colors">expand_more</span>
             </div>
-            <div className="hidden lg:block text-left relative top-[1px]">
-              <p className="text-[13px] font-bold text-on-surface leading-none mb-1">John Doe</p>
-              <p className="text-[10.5px] text-on-surface-variant font-medium leading-none tracking-wide">Dr. Elena Rostova</p>
-            </div>
-            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-on-surface transition-colors">expand_more</span>
+
+            {/* Dropdown Menu */}
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl border border-outline-variant/30 shadow-lg py-1.5 z-50">
+                <div className="px-4 py-2.5 border-b border-outline-variant/20">
+                  <p className="text-sm font-semibold text-on-surface">{user?.name}</p>
+                  <p className="text-xs text-on-surface-variant">{user?.email}</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded uppercase">{user?.role}</span>
+                </div>
+                <button
+                  onClick={async () => {
+                    setShowMenu(false);
+                    await logout();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[20px]">logout</span>
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

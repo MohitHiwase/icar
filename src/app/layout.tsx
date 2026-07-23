@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
-import Sidebar from "@/components/Sidebar";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
 const hanken = Hanken_Grotesk({
   variable: "--font-hanken",
@@ -17,8 +17,6 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
 });
-
-import TopNavBar from "@/components/TopNavBar";
 
 export const metadata: Metadata = {
   title: "GeoVision",
@@ -38,18 +36,10 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="flex h-screen overflow-hidden bg-[#F8FAFC] text-on-surface font-body-md font-inter">
-        {/* Fixed Left Sidebar */}
-        <Sidebar />
-        
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative ml-[240px]">
-          <TopNavBar />
-          
-          <main className="flex-1 overflow-x-hidden overflow-y-auto relative w-full h-full">
-            {children}
-          </main>
-        </div>
+      <body className="h-full bg-[#F8FAFC] text-on-surface font-inter">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,20 +1,16 @@
 /**
  * Prisma Client Singleton
  * 
- * Prisma 7 requires explicit driver adapters.
- * Uses PrismaPg adapter with the pg driver for PostgreSQL connectivity.
- * Singleton pattern prevents connection pool exhaustion during hot-reload.
+ * Standard PrismaClient singleton for backend database connectivity.
  */
 
-import { PrismaClient } from '../generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/prisma';
 import { config } from '../config';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
 function createPrismaClient(): PrismaClient {
-  const adapter = new PrismaPg({ connectionString: config.databaseUrl });
-  return new PrismaClient({ adapter });
+  return new PrismaClient();
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
