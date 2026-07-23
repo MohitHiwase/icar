@@ -21,6 +21,7 @@ import { logger, NotFoundError } from './lib';
 import { errorHandler } from './middleware';
 import { authRouter } from './modules/auth';
 import { dataSourceRouter } from './modules/data-sources';
+import { datasetRouter } from './modules/datasets';
 
 export function createApp(): express.Application {
   const app = express();
@@ -57,6 +58,7 @@ export function createApp(): express.Application {
   // ── API Routes ────────────────────────
   app.use('/api/auth', authRouter);
   app.use('/api/data-sources', dataSourceRouter);
+  app.use('/api/datasets', datasetRouter);
 
   // Future routes:
   //   app.use('/api/datasets',   datasetRouter);

@@ -256,4 +256,104 @@ export const dataSourcesApi = {
     }),
 };
 
+export interface DatasetItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  dataType: string;
+  fileFormat: string;
+  filePath: string;
+  fileSizeBytes: number;
+  origin: string;
+  qualityStatus: string;
+  parentDatasetIds?: string | null;
+  metadata?: string | null;
+  sourceId?: string | null;
+  uploadedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  uploader?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  source?: {
+    id: string;
+    name: string;
+    type: string;
+    provider: string;
+  } | null;
+  _count?: {
+    pipelineNodes: number;
+    mapLayers: number;
+    reports: number;
+  };
+}
+
+export const datasetsApi = {
+  getAll: (params?: {
+    dataType?: string;
+    qualityStatus?: string;
+    origin?: string;
+    sourceId?: string;
+    search?: string;
+  }) => {
+    const cleanParams: Record<string, string> = {};
+    if (params?.dataType) cleanParams.dataType = params.dataType;
+    if (params?.qualityStatus) cleanParams.qualityStatus = params.qualityStatus;
+    if (params?.origin) cleanParams.origin = params.origin;
+    if (params?.sourceId) cleanParams.sourceId = params.sourceId;
+    if (params?.search) cleanParams.search = params.search;
+    const query = new URLSearchParams(cleanParams).toString();
+    return request<{ datasets: DatasetItem[]; count: number }>(
+      `/datasets${query ? `?${query}` : ""}`
+    );
+  },
+
+  getById: (id: string) =>
+    request<{ dataset: DatasetItem }>(`/datasets/${id}`),
+
+  create: (data: {
+    name: string;
+    description?: string;
+    dataType: string;
+    fileFormat?: string;
+    filePath?: string;
+    fileSizeBytes?: number;
+    origin?: string;
+    qualityStatus?: string;
+    sourceId?: string;
+    metadata?: any;
+  }) =>
+    request<{ dataset: DatasetItem }>("/datasets", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  update: (
+    id: string,
+    data: Partial<{
+      name: string;
+      description?: string;
+      dataType: string;
+      fileFormat?: string;
+      filePath?: string;
+      fileSizeBytes?: number;
+      origin?: string;
+      qualityStatus?: string;
+      sourceId?: string;
+      metadata?: any;
+    }>
+  ) =>
+    request<{ dataset: DatasetItem }>(`/datasets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    request<{ message: string }>(`/datasets/${id}`, {
+      method: "DELETE",
+    }),
+};
+
 export { ApiError };
