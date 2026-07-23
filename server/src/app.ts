@@ -22,6 +22,7 @@ import { errorHandler } from './middleware';
 import { authRouter } from './modules/auth';
 import { dataSourceRouter } from './modules/data-sources';
 import { datasetRouter } from './modules/datasets';
+import { uploadRouter } from './modules/upload';
 
 export function createApp(): express.Application {
   const app = express();
@@ -59,6 +60,7 @@ export function createApp(): express.Application {
   app.use('/api/auth', authRouter);
   app.use('/api/data-sources', dataSourceRouter);
   app.use('/api/datasets', datasetRouter);
+  app.use('/api/upload', uploadRouter);
 
   // Future routes:
   //   app.use('/api/datasets',   datasetRouter);

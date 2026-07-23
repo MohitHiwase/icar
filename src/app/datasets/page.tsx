@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { datasetsApi, dataSourcesApi, DatasetItem, DataSourceItem } from "@/lib/api";
 
 export default function DatasetsPage() {
@@ -15,24 +15,39 @@ export default function DatasetsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  // Modals
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  // Import Modal State
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploading, setUploading] = useState(false);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
+
+  // Edit / Delete / Details Modals
   const [editingDataset, setEditingDataset] = useState<DatasetItem | null>(null);
   const [deletingDataset, setDeletingDataset] = useState<DatasetItem | null>(null);
   const [selectedDataset, setSelectedDataset] = useState<DatasetItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  // Form State
-  const [formData, setFormData] = useState({
+  // Import Form Inputs
+  const [importForm, setImportForm] = useState({
+    name: "",
+    description: "",
+    sourceId: "",
+  });
+
+  // Edit Form Inputs
+  const [editForm, setEditForm] = useState({
     name: "",
     description: "",
     dataType: "GeoJSON",
     fileFormat: "geojson",
-    origin: "manual_upload",
     qualityStatus: "raw",
     sourceId: "",
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchDatasets = async () => {
     setLoading(true);
@@ -73,55 +88,101 @@ export default function DatasetsPage() {
     return matchesTab && matchesQuality && matchesSearch;
   });
 
-  const handleOpenCreate = () => {
-    setFormData({
+  const handleOpenImport = () => {
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setUploading(false);
+    setModalError(null);
+    setImportSuccess(null);
+    setImportForm({
       name: "",
       description: "",
-      dataType: "GeoJSON",
-      fileFormat: "geojson",
-      origin: "manual_upload",
-      qualityStatus: "raw",
       sourceId: dataSources.length > 0 ? dataSources[0].id : "",
     });
+    setIsImportOpen(true);
+  };
+
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    const cleanName = file.name.replace(/\.[^/.]+$/, "");
+    setImportForm((prev) => ({
+      ...prev,
+      name: prev.name || cleanName,
+    }));
     setModalError(null);
-    setIsCreateOpen(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handleFileSelect(file);
+    }
+  };
+
+  const handleImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      setModalError("Please select or drop a geospatial file to import.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+    setModalError(null);
+    setImportSuccess(null);
+
+    try {
+      const res = await datasetsApi.uploadDataset(
+        selectedFile,
+        {
+          name: importForm.name,
+          description: importForm.description || undefined,
+          sourceId: importForm.sourceId || undefined,
+        },
+        (percent) => {
+          setUploadProgress(percent);
+        }
+      );
+
+      setImportSuccess(`Dataset "${res.dataset.name}" imported successfully!`);
+      setTimeout(() => {
+        setIsImportOpen(false);
+        fetchDatasets();
+      }, 1200);
+    } catch (err: any) {
+      setModalError(err?.message || "File upload failed.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleOpenEdit = (dataset: DatasetItem) => {
     setEditingDataset(dataset);
-    setFormData({
+    setEditForm({
       name: dataset.name,
       description: dataset.description || "",
       dataType: dataset.dataType,
       fileFormat: dataset.fileFormat,
-      origin: dataset.origin || "manual_upload",
       qualityStatus: dataset.qualityStatus || "raw",
       sourceId: dataset.sourceId || "",
     });
     setModalError(null);
-  };
-
-  const handleCreateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setModalError(null);
-    try {
-      await datasetsApi.create({
-        name: formData.name,
-        description: formData.description || undefined,
-        dataType: formData.dataType,
-        fileFormat: formData.fileFormat || formData.dataType.toLowerCase(),
-        origin: formData.origin,
-        qualityStatus: formData.qualityStatus,
-        sourceId: formData.sourceId || undefined,
-      });
-      setIsCreateOpen(false);
-      fetchDatasets();
-    } catch (err: any) {
-      setModalError(err?.message || "Failed to create dataset");
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleUpdateSubmit = async (e: React.FormEvent) => {
@@ -131,13 +192,12 @@ export default function DatasetsPage() {
     setModalError(null);
     try {
       await datasetsApi.update(editingDataset.id, {
-        name: formData.name,
-        description: formData.description || undefined,
-        dataType: formData.dataType,
-        fileFormat: formData.fileFormat || formData.dataType.toLowerCase(),
-        origin: formData.origin,
-        qualityStatus: formData.qualityStatus,
-        sourceId: formData.sourceId || undefined,
+        name: editForm.name,
+        description: editForm.description || undefined,
+        dataType: editForm.dataType,
+        fileFormat: editForm.fileFormat || editForm.dataType.toLowerCase(),
+        qualityStatus: editForm.qualityStatus,
+        sourceId: editForm.sourceId || undefined,
       });
       setEditingDataset(null);
       fetchDatasets();
@@ -160,6 +220,14 @@ export default function DatasetsPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getQualityBadge = (status: string) => {
@@ -218,11 +286,11 @@ export default function DatasetsPage() {
             <span className={`material-symbols-outlined ${loading ? "animate-spin" : ""}`}>refresh</span>
           </button>
           <button
-            onClick={handleOpenCreate}
+            onClick={handleOpenImport}
             className="px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition flex items-center gap-2 shadow-sm text-sm"
           >
-            <span className="material-symbols-outlined text-[20px]">add</span>
-            Create Dataset
+            <span className="material-symbols-outlined text-[20px]">upload_file</span>
+            Import Dataset
           </button>
         </div>
       </div>
@@ -259,7 +327,7 @@ export default function DatasetsPage() {
           <div>
             <p className="text-xs text-on-surface-variant font-medium">Raster & Imagery</p>
             <h3 className="text-2xl font-bold text-on-surface mt-0.5">
-              {datasets.filter((d) => ["geotiff", "cog", "jp2", "satellite", "png", "jpg"].includes(d.dataType.toLowerCase())).length}
+              {datasets.filter((d) => ["geotiff", "cog", "jp2", "satellite", "png", "jpg", "jpeg"].includes(d.dataType.toLowerCase())).length}
             </h3>
           </div>
         </div>
@@ -293,13 +361,13 @@ export default function DatasetsPage() {
       <div className="bg-white p-6 rounded-2xl border border-outline-variant/30 elevation-1 space-y-3">
         <div className="flex items-center gap-2 text-primary font-semibold text-sm">
           <span className="material-symbols-outlined text-[20px]">layers</span>
-          <span>Supported Geospatial Data Formats</span>
+          <span>Supported File Formats & Dataset Pipeline</span>
         </div>
         <p className="text-xs text-on-surface-variant leading-relaxed">
-          GeoVision dataset metadata architecture supports tabular, vector, and high-resolution satellite raster formats ready for AI analysis & GIS overlay:
+          Upload geospatial datasets directly into GeoVision. Our automated pipeline validates formats, organizes storage into categorized subfolders, and generates dataset records:
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
-          {["CSV", "Excel (.xlsx)", "GeoJSON", "Shapefile (.shp)", "GeoTIFF", "Cloud Optimized GeoTIFF (COG)", "JP2", "PNG", "JPG", "JPEG"].map((fmt) => (
+          {["CSV", "Excel (.xlsx)", "GeoJSON", "Shapefile (.shp / .zip)", "GeoTIFF (.tif)", "Cloud Optimized GeoTIFF (.cog)", "JP2", "PNG", "JPG", "JPEG"].map((fmt) => (
             <span key={fmt} className="px-3 py-1 bg-[#f0f7f5] text-primary font-medium text-xs rounded-lg border border-primary/15">
               {fmt}
             </span>
@@ -388,19 +456,19 @@ export default function DatasetsPage() {
           <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center text-on-surface-variant mb-4">
             <span className="material-symbols-outlined text-[32px]">folder_open</span>
           </div>
-          <h3 className="text-lg font-bold text-on-surface mb-1">No datasets configured yet</h3>
+          <h3 className="text-lg font-bold text-on-surface mb-1">No datasets imported yet.</h3>
           <p className="text-xs text-on-surface-variant max-w-sm mb-6">
             {datasets.length === 0
-              ? "Create your first dataset metadata entry linked to a data source."
+              ? "Upload a geospatial file (GeoJSON, GeoTIFF, Shapefile, CSV) to import your first dataset."
               : "No datasets match your current filter or search criteria."}
           </p>
           {datasets.length === 0 ? (
             <button
-              onClick={handleOpenCreate}
+              onClick={handleOpenImport}
               className="px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition text-sm flex items-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Create Your First Dataset
+              <span className="material-symbols-outlined text-[18px]">upload_file</span>
+              Import Dataset
             </button>
           ) : (
             <button
@@ -446,9 +514,13 @@ export default function DatasetsPage() {
 
                 <div className="space-y-2 pt-2 border-t border-outline-variant/20 text-xs">
                   <div className="flex items-center justify-between text-on-surface-variant">
+                    <span className="font-medium">File Size:</span>
+                    <span className="font-mono text-on-surface">{formatFileSize(dataset.fileSizeBytes)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-on-surface-variant">
                     <span className="font-medium">Data Source:</span>
                     <span className="font-semibold text-on-surface">
-                      {dataset.source?.name || "Direct Metadata"}
+                      {dataset.source?.name || "Direct Import"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-on-surface-variant">
@@ -458,7 +530,7 @@ export default function DatasetsPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-on-surface-variant">
-                    <span className="font-medium">Created:</span>
+                    <span className="font-medium">Upload Date:</span>
                     <span>
                       {new Date(dataset.createdAt).toLocaleDateString("en-US", {
                         month: "short",
@@ -481,7 +553,7 @@ export default function DatasetsPage() {
                     <button
                       onClick={() => handleOpenEdit(dataset)}
                       className="p-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary/10 transition"
-                      title="Edit Dataset"
+                      title="Edit Dataset Metadata"
                     >
                       <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
@@ -507,10 +579,11 @@ export default function DatasetsPage() {
                   <th className="px-6 py-4">Dataset Name</th>
                   <th className="px-6 py-4">Data Type</th>
                   <th className="px-6 py-4">Format</th>
+                  <th className="px-6 py-4">File Size</th>
                   <th className="px-6 py-4">Linked Data Source</th>
                   <th className="px-6 py-4">Quality Status</th>
                   <th className="px-6 py-4">Owner</th>
-                  <th className="px-6 py-4">Created Date</th>
+                  <th className="px-6 py-4">Upload Date</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -534,6 +607,7 @@ export default function DatasetsPage() {
                     </td>
                     <td className="px-6 py-4 font-medium text-xs text-on-surface">{dataset.dataType}</td>
                     <td className="px-6 py-4 font-mono text-xs uppercase text-on-surface-variant">{dataset.fileFormat}</td>
+                    <td className="px-6 py-4 font-mono text-xs text-on-surface">{formatFileSize(dataset.fileSizeBytes)}</td>
                     <td className="px-6 py-4 text-xs font-medium text-on-surface-variant">
                       {dataset.source?.name || "N/A"}
                     </td>
@@ -614,25 +688,32 @@ export default function DatasetsPage() {
                   <p className="font-semibold text-on-surface uppercase">{selectedDataset.fileFormat}</p>
                 </div>
                 <div>
+                  <span className="text-on-surface-variant font-medium">File Size:</span>
+                  <p className="font-mono font-semibold text-on-surface">{formatFileSize(selectedDataset.fileSizeBytes)}</p>
+                </div>
+                <div>
                   <span className="text-on-surface-variant font-medium">Quality Status:</span>
                   <div className="mt-1">{getQualityBadge(selectedDataset.qualityStatus)}</div>
                 </div>
-                <div>
-                  <span className="text-on-surface-variant font-medium">Origin:</span>
-                  <p className="font-semibold text-on-surface">{selectedDataset.origin}</p>
-                </div>
+              </div>
+
+              <div className="pt-2 border-t border-outline-variant/20">
+                <span className="text-on-surface-variant font-medium">Storage Path:</span>
+                <p className="font-mono text-[11px] text-on-surface bg-surface-container-low p-2 rounded-lg mt-0.5 truncate">
+                  {selectedDataset.filePath || "N/A"}
+                </p>
               </div>
 
               <div className="pt-2 border-t border-outline-variant/20">
                 <span className="text-on-surface-variant font-medium">Linked Data Source:</span>
                 <p className="font-semibold text-on-surface">
-                  {selectedDataset.source?.name ? `${selectedDataset.source.name} (${selectedDataset.source.provider})` : "Direct Entry / None"}
+                  {selectedDataset.source?.name ? `${selectedDataset.source.name} (${selectedDataset.source.provider})` : "Direct Import / None"}
                 </p>
               </div>
 
               <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant">
-                <span>Created: {new Date(selectedDataset.createdAt).toLocaleString()}</span>
-                <span>Updated: {new Date(selectedDataset.updatedAt).toLocaleString()}</span>
+                <span>Upload Date: {new Date(selectedDataset.createdAt).toLocaleString()}</span>
+                <span>Owner: {selectedDataset.uploader?.name || "Admin"}</span>
               </div>
             </div>
 
@@ -648,101 +729,150 @@ export default function DatasetsPage() {
         </div>
       )}
 
-      {/* Create Modal */}
-      {isCreateOpen && (
+      {/* Import Dataset Modal (Drag & Drop + Progress Bar) */}
+      {isImportOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
               <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">add_circle</span>
-                Create Dataset Metadata
+                <span className="material-symbols-outlined text-primary">upload_file</span>
+                Import Geospatial Dataset
               </h3>
-              <button onClick={() => setIsCreateOpen(false)} className="text-on-surface-variant hover:text-on-surface">
+              <button
+                onClick={() => setIsImportOpen(false)}
+                disabled={uploading}
+                className="text-on-surface-variant hover:text-on-surface"
+              >
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
+            {/* Error Notification */}
             {modalError && (
-              <div className="mb-4 p-3 bg-error/10 text-error text-xs rounded-lg flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]">error</span>
+              <div className="p-3.5 bg-error/10 border border-error/30 text-error text-xs rounded-xl flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[18px]">error</span>
                 <span>{modalError}</span>
               </div>
             )}
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+            {/* Success Notification */}
+            {importSuccess && (
+              <div className="p-3.5 bg-primary/10 border border-primary/30 text-primary text-xs rounded-xl flex items-center gap-2.5 font-semibold">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>{importSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleImportSubmit} className="space-y-4 text-xs">
+              {/* Drag & Drop Dropzone */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`p-6 border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
+                  isDragging
+                    ? "border-primary bg-primary/10"
+                    : selectedFile
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-outline/40 hover:border-primary/50 bg-surface-container-low"
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleFileSelect(e.target.files[0]);
+                    }
+                  }}
+                  className="hidden"
+                  accept=".csv,.xlsx,.xls,.json,.geojson,.shp,.shx,.dbf,.prj,.cpg,.zip,.tif,.tiff,.cog,.jp2,.png,.jpg,.jpeg"
+                />
+
+                {selectedFile ? (
+                  <div className="space-y-1">
+                    <span className="material-symbols-outlined text-primary text-[36px]">description</span>
+                    <p className="font-bold text-on-surface text-sm">{selectedFile.name}</p>
+                    <p className="text-on-surface-variant font-mono text-[11px]">
+                      {formatFileSize(selectedFile.size)} • {selectedFile.type || "Geospatial File"}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFile(null);
+                      }}
+                      className="mt-2 text-xs text-error font-semibold hover:underline"
+                    >
+                      Change File
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1">
+                      <span className="material-symbols-outlined text-[28px]">cloud_upload</span>
+                    </div>
+                    <p className="font-semibold text-on-surface text-sm">
+                      Drag & Drop your geospatial dataset here
+                    </p>
+                    <p className="text-on-surface-variant text-[11px]">
+                      or click to <span className="text-primary font-bold">Browse Files</span>
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant/80 mt-1 max-w-xs">
+                      Supported: CSV, Excel, GeoJSON, Shapefile (.shp/.zip), GeoTIFF (.tif/.cog), JP2, PNG, JPG, JPEG (Max 100MB)
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Upload Progress Bar */}
+              {uploading && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-xs font-semibold text-on-surface">
+                    <span>Uploading file...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary transition-all duration-200"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Form Inputs */}
               <div>
-                <label className="block font-medium text-on-surface mb-1">Dataset Name *</label>
+                <label className="block font-medium text-on-surface mb-1">Dataset Name</label>
                 <input
                   type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Midwest Corn Vegetation Index"
+                  value={importForm.name}
+                  onChange={(e) => setImportForm({ ...importForm, name: e.target.value })}
+                  placeholder="Auto-generated from filename if empty..."
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-on-surface mb-1">Description</label>
+                <label className="block font-medium text-on-surface mb-1">Description (Optional)</label>
                 <textarea
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe dataset coverage, resolution, or parameters..."
+                  rows={2}
+                  value={importForm.description}
+                  onChange={(e) => setImportForm({ ...importForm, description: e.target.value })}
+                  placeholder="Describe dataset coverage, parameters, or bounds..."
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-medium text-on-surface mb-1">Data Type *</label>
-                  <select
-                    value={formData.dataType}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        dataType: e.target.value,
-                        fileFormat: e.target.value.toLowerCase(),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
-                  >
-                    <option value="GeoJSON">GeoJSON</option>
-                    <option value="GeoTIFF">GeoTIFF</option>
-                    <option value="Shapefile">Shapefile</option>
-                    <option value="CSV">CSV</option>
-                    <option value="Excel">Excel (.xlsx)</option>
-                    <option value="COG">Cloud Optimized GeoTIFF (COG)</option>
-                    <option value="JP2">JP2</option>
-                    <option value="satellite">Satellite Imagery</option>
-                    <option value="climate">Climate Data</option>
-                    <option value="soil">Soil Assay</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-medium text-on-surface mb-1">Quality Status</label>
-                  <select
-                    value={formData.qualityStatus}
-                    onChange={(e) => setFormData({ ...formData, qualityStatus: e.target.value })}
-                    className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
-                  >
-                    <option value="raw">Raw</option>
-                    <option value="cleaned">Cleaned</option>
-                    <option value="standardized">Standardized</option>
-                    <option value="merged">Merged</option>
-                  </select>
-                </div>
-              </div>
-
               <div>
-                <label className="block font-medium text-on-surface mb-1">Link Data Source</label>
+                <label className="block font-medium text-on-surface mb-1">Link Data Source (Optional)</label>
                 <select
-                  value={formData.sourceId}
-                  onChange={(e) => setFormData({ ...formData, sourceId: e.target.value })}
+                  value={importForm.sourceId}
+                  onChange={(e) => setImportForm({ ...importForm, sourceId: e.target.value })}
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 >
-                  <option value="">None (Direct Creation)</option>
+                  <option value="">None (Direct File Import)</option>
                   {dataSources.map((source) => (
                     <option key={source.id} value={source.id}>
                       {source.name} ({source.provider})
@@ -754,17 +884,28 @@ export default function DatasetsPage() {
               <div className="pt-3 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsCreateOpen(false)}
+                  onClick={() => setIsImportOpen(false)}
+                  disabled={uploading}
                   className="px-4 py-2 border border-outline/30 rounded-lg font-semibold text-on-surface hover:bg-surface-container-low transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition flex items-center gap-1.5"
+                  disabled={uploading || !selectedFile}
+                  className="px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  {submitting ? "Creating..." : "Save Dataset"}
+                  {uploading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[18px]">upload</span>
+                      <span>Import Dataset</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -772,14 +913,14 @@ export default function DatasetsPage() {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Dataset Metadata Modal */}
       {editingDataset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-outline-variant/40 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">edit</span>
-                Edit Dataset
+                Edit Dataset Metadata
               </h3>
               <button onClick={() => setEditingDataset(null)} className="text-on-surface-variant hover:text-on-surface">
                 <span className="material-symbols-outlined text-[20px]">close</span>
@@ -799,8 +940,8 @@ export default function DatasetsPage() {
                 <input
                   type="text"
                   required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 />
               </div>
@@ -809,8 +950,8 @@ export default function DatasetsPage() {
                 <label className="block font-medium text-on-surface mb-1">Description</label>
                 <textarea
                   rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 />
               </div>
@@ -819,10 +960,10 @@ export default function DatasetsPage() {
                 <div>
                   <label className="block font-medium text-on-surface mb-1">Data Type *</label>
                   <select
-                    value={formData.dataType}
+                    value={editForm.dataType}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setEditForm({
+                        ...editForm,
                         dataType: e.target.value,
                         fileFormat: e.target.value.toLowerCase(),
                       })
@@ -836,17 +977,15 @@ export default function DatasetsPage() {
                     <option value="Excel">Excel (.xlsx)</option>
                     <option value="COG">Cloud Optimized GeoTIFF (COG)</option>
                     <option value="JP2">JP2</option>
-                    <option value="satellite">Satellite Imagery</option>
-                    <option value="climate">Climate Data</option>
-                    <option value="soil">Soil Assay</option>
+                    <option value="Satellite Image">Satellite Image</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block font-medium text-on-surface mb-1">Quality Status</label>
                   <select
-                    value={formData.qualityStatus}
-                    onChange={(e) => setFormData({ ...formData, qualityStatus: e.target.value })}
+                    value={editForm.qualityStatus}
+                    onChange={(e) => setEditForm({ ...editForm, qualityStatus: e.target.value })}
                     className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                   >
                     <option value="raw">Raw</option>
@@ -860,11 +999,11 @@ export default function DatasetsPage() {
               <div>
                 <label className="block font-medium text-on-surface mb-1">Link Data Source</label>
                 <select
-                  value={formData.sourceId}
-                  onChange={(e) => setFormData({ ...formData, sourceId: e.target.value })}
+                  value={editForm.sourceId}
+                  onChange={(e) => setEditForm({ ...editForm, sourceId: e.target.value })}
                   className="w-full px-3 py-2 border border-outline/30 rounded-lg text-xs text-on-surface focus:ring-2 focus:ring-primary/30"
                 >
-                  <option value="">None (Direct Creation)</option>
+                  <option value="">None (Direct File Import)</option>
                   {dataSources.map((source) => (
                     <option key={source.id} value={source.id}>
                       {source.name} ({source.provider})

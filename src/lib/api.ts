@@ -354,6 +354,62 @@ export const datasetsApi = {
     request<{ message: string }>(`/datasets/${id}`, {
       method: "DELETE",
     }),
+
+  uploadDataset: (
+    file: File,
+    options?: { name?: string; description?: string; sourceId?: string },
+    onProgress?: (percent: number) => void
+  ): Promise<{ dataset: DatasetItem }> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("file", file);
+      if (options?.name) formData.append("name", options.name);
+      if (options?.description) formData.append("description", options.description);
+      if (options?.sourceId) formData.append("sourceId", options.sourceId);
+
+      xhr.open("POST", `${API_BASE}/upload/dataset`);
+
+      // Authentication Token
+      const token = getAccessToken();
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            onProgress(percent);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.data);
+          } catch (err) {
+            reject(new ApiError("Invalid response from server", xhr.status));
+          }
+        } else {
+          try {
+            const errorRes = JSON.parse(xhr.responseText);
+            reject(new ApiError(errorRes.error?.message || "File upload failed", xhr.status));
+          } catch {
+            reject(new ApiError(`Upload failed with status ${xhr.status}`, xhr.status));
+          }
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new ApiError("Network error during file upload", 0));
+      };
+
+      xhr.send(formData);
+    });
+  },
 };
 
 export { ApiError };

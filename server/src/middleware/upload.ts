@@ -1,60 +1,49 @@
 /**
- * File Upload Middleware (Multer)
+ * File Upload Ingestion Middleware (Multer)
  *
- * Configures disk storage for geospatial file uploads.
- * Generates unique filenames to prevent collisions.
- * Validates file size against config limits.
- * Reusable across any route that needs file ingestion.
+ * Multer handles HTTP multipart form parsing and memory buffering.
+ * Isolates file receiving from storage & business logic.
+ * Validates maximum file size and supported extensions.
  */
 
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 
-// Ensure upload directory exists at startup
-if (!fs.existsSync(config.uploadDir)) {
-  fs.mkdirSync(config.uploadDir, { recursive: true });
-}
+// Memory storage keeps file buffers in memory for processing by StorageProvider
+const storage = multer.memoryStorage();
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, config.uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueName = `${uuidv4()}${ext}`;
-    cb(null, uniqueName);
-  },
-});
-
-// Allowed geospatial file extensions
-const ALLOWED_EXTENSIONS = new Set([
+// Supported extensions mapping
+export const ALLOWED_EXTENSIONS = new Set([
   '.csv', '.xlsx', '.xls',
   '.json', '.geojson',
-  '.shp', '.shx', '.dbf', '.prj', '.cpg',  // Shapefile components
-  '.tif', '.tiff',                            // GeoTIFF
-  '.zip',                                     // Bundled shapefiles
+  '.shp', '.shx', '.dbf', '.prj', '.cpg', '.zip',
+  '.tif', '.tiff', '.cog',
+  '.jp2',
+  '.png', '.jpg', '.jpeg',
 ]);
 
 function fileFilter(
   _req: Express.Request,
   file: Express.Multer.File,
-  cb: multer.FileFilterCallback,
+  cb: multer.FileFilterCallback
 ) {
   const ext = path.extname(file.originalname).toLowerCase();
   if (ALLOWED_EXTENSIONS.has(ext)) {
     cb(null, true);
   } else {
-    cb(new Error(`File type '${ext}' is not supported. Allowed: ${[...ALLOWED_EXTENSIONS].join(', ')}`));
+    cb(
+      new Error(
+        `File extension '${ext}' is not supported. Supported extensions: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}`
+      )
+    );
   }
 }
 
-export const upload = multer({
+export const uploadMiddleware = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: config.maxFileSizeBytes,
+    fileSize: config.maxFileSizeBytes, // Configured upload limit (default 100MB)
   },
 });
