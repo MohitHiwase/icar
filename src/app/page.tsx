@@ -1,258 +1,703 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import DashboardMapWrapper from '@/components/DashboardMapWrapper';
+import { useAuth } from '@/lib/auth-context';
 
-interface KPIData {
+interface KPICard {
   id: string;
   title: string;
   value: string;
-  subValue?: string;
   subText: string;
   icon: string;
-  trend: 'up' | 'neutral' | 'pulse';
+  href: string;
 }
 
-interface Activity {
+interface RecentWork {
   id: string;
   title: string;
   subtitle: string;
+  type: 'analysis' | 'dataset' | 'report';
+  progress?: number;
   timeAgo: string;
-  icon: string;
-  statusColor: string;
+  href: string;
+  buttonText: string;
 }
 
-interface SpatialOpportunity {
+interface ActivityEvent {
   id: string;
-  siteName: string;
-  details: string;
-  suitability: number;
-  value: string;
-  readiness: string;
-  readinessBadge: string;
-  ownerName: string;
+  title: string;
+  subtitle: string;
+  timestamp: string;
+  icon: string;
+  category: 'ingest' | 'analysis' | 'api' | 'report' | 'alert' | 'system';
 }
 
-const MOCK_KPIS: KPIData[] = [
-  { id: 'kpi-1', title: 'Active Datasets', value: '28', subValue: '+4', subText: 'added this week', icon: 'dataset', trend: 'up' },
-  { id: 'kpi-2', title: 'Spatial Extent Coverage', value: '1.42M ha', subValue: '99.4%', subText: 'telemetry confidence', icon: 'map', trend: 'up' },
-  { id: 'kpi-3', title: 'GIS Engine Health', value: '99.9%', subText: 'CesiumJS 3D Active', icon: 'speed', trend: 'pulse' },
-  { id: 'kpi-4', title: 'Connected Sources', value: '5 Live', subText: 'Sentinel-2, Bhuvan, IMD', icon: 'hub', trend: 'neutral' }
+interface ScheduledTask {
+  id: string;
+  name: string;
+  schedule: string;
+  timeRemaining: string;
+  type: string;
+}
+
+interface AlertItem {
+  id: string;
+  title: string;
+  message: string;
+  severity: 'critical' | 'warning' | 'info';
+  timestamp: string;
+  actionText: string;
+  actionHref: string;
+}
+
+interface TrendMetric {
+  id: string;
+  label: string;
+  value: string;
+  change: string;
+  isPositive: boolean;
+  bars: number[];
+}
+
+interface HealthNode {
+  name: string;
+  status: 'Operational' | 'Healthy' | 'Active' | 'Online';
+  detail: string;
+  state: 'ok' | 'warn' | 'err';
+}
+
+interface PinnedResource {
+  id: string;
+  title: string;
+  type: 'Dataset' | 'Analysis' | 'Report' | 'Project';
+  metadata: string;
+  href: string;
+  icon: string;
+}
+
+const MOCK_KPIS: KPICard[] = [
+  { id: 'kpi-datasets', title: 'Total Datasets', value: '34', subText: '+6 added this week', icon: 'dataset', href: '/datasets' },
+  { id: 'kpi-sources', title: 'Connected Data Sources', value: '5 Active', subText: '99.8% sync reliability', icon: 'hub', href: '/data-sources' },
+  { id: 'kpi-analyses', title: 'Analyses Run', value: '128', subText: '12 active & queued', icon: 'science', href: '/analysis-studio' },
+  { id: 'kpi-reports', title: 'Reports Generated', value: '42', subText: '4 created today', icon: 'assessment', href: '/reports' },
+  { id: 'kpi-ai', title: 'AI Jobs Running', value: '3 Active', subText: 'Classification & masking', icon: 'psychology', href: '/analysis-studio' },
+  { id: 'kpi-storage', title: 'Storage Used', value: '1.42 TB', subText: '71% of 2.0 TB limit', icon: 'hard_drive', href: '/settings' }
 ];
 
-const MOCK_ACTIVITIES: Activity[] = [
-  { id: 'act-1', title: 'GeoJSON Dataset Ingested', subtitle: 'Iowa River Farm • 1,240 acres', timeAgo: '12 mins ago', icon: 'upload_file', statusColor: 'bg-emerald-500' },
-  { id: 'act-2', title: 'Sentinel-2 Tile Refreshed', subtitle: 'Sector IN-MH-402 • 10m Multispectral', timeAgo: '45 mins ago', icon: 'satellite_alt', statusColor: 'bg-teal-500' },
-  { id: 'act-3', title: 'Feature Inspection Completed', subtitle: 'Parcel #AR-9022 • Soil Nitrogen Vector', timeAgo: '2 hours ago', icon: 'pin_drop', statusColor: 'bg-emerald-500' }
+const MOCK_RECENT_WORK: RecentWork[] = [
+  {
+    id: 'rw-1',
+    title: 'Karnal Crop Stress & NDVI Assessment',
+    subtitle: 'Sector HR-012 • 450 acres • Sentinel-2 L2A',
+    type: 'analysis',
+    progress: 85,
+    timeAgo: '14 mins ago',
+    href: '/analysis-studio',
+    buttonText: 'Resume Analysis'
+  },
+  {
+    id: 'rw-2',
+    title: 'Sentinel-2 L2A Punjab Sector IN-PB-90',
+    subtitle: 'GeoTIFF • 1.2 GB • 10m Resolution',
+    type: 'dataset',
+    timeAgo: '1 hour ago',
+    href: '/datasets',
+    buttonText: 'Open Dataset'
+  },
+  {
+    id: 'rw-3',
+    title: 'Q3 Agricultural Productivity Overview',
+    subtitle: 'Executive Brief • PDF Draft',
+    type: 'report',
+    progress: 40,
+    timeAgo: '3 hours ago',
+    href: '/reports',
+    buttonText: 'Continue Editing'
+  }
 ];
 
-const MOCK_OPPORTUNITIES: SpatialOpportunity[] = [
-  { id: 'opp-1', siteName: 'Karnal Wheat Research Plot', details: 'HR-012 • 450 acres', suitability: 94, value: 'High Yield Potential', readiness: 'ACTIVE', readinessBadge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20', ownerName: 'Dr. V. Sharma (GeoVision)' },
-  { id: 'opp-2', siteName: 'Mesa Delta Irrigation Basin', details: 'AZ-087 • 1,120 acres', suitability: 82, value: 'NDVI Stress Detected', readiness: 'MONITORING', readinessBadge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20', ownerName: 'S. Kulkarni (GeoVision Node)' }
+const MOCK_ACTIVITIES: ActivityEvent[] = [
+  { id: 'act-1', title: 'GeoJSON Ingest Completed', subtitle: 'Iowa River Farm • 1,240 acres imported by Dr. Sharma', timestamp: '12m ago', icon: 'upload_file', category: 'ingest' },
+  { id: 'act-2', title: 'NDVI Crop Health Model Finished', subtitle: 'Karnal Plot #AR-9022 • Yield confidence 94%', timestamp: '28m ago', icon: 'analytics', category: 'analysis' },
+  { id: 'act-3', title: 'Cloud Masking Filter Executed', subtitle: 'Sentinel-2 Tile IN-MH-402 • 10m resolution', timestamp: '45m ago', icon: 'analytics', category: 'analysis' },
+  { id: 'act-4', title: 'IMD Weather Telemetry Sync', subtitle: '1,420 station coordinates synchronized', timestamp: '1h ago', icon: 'sync', category: 'api' },
+  { id: 'act-5', title: 'Monthly Spatial Audit PDF Exported', subtitle: 'Generated by System Automation', timestamp: '3h ago', icon: 'description', category: 'report' },
+  { id: 'act-6', title: 'New Researcher Access Granted', subtitle: 'S. Kulkarni added to GeoVision Node', timestamp: '5h ago', icon: 'person_add', category: 'system' }
 ];
 
-export default function Page() {
-  const [kpis] = useState<KPIData[]>(MOCK_KPIS);
-  const [activities] = useState<Activity[]>(MOCK_ACTIVITIES);
-  const [opportunities] = useState<SpatialOpportunity[]>(MOCK_OPPORTUNITIES);
+const MOCK_SCHEDULED_TASKS: ScheduledTask[] = [
+  { id: 'st-1', name: 'Weather API Sync', schedule: 'Daily at 18:00 UTC', timeRemaining: 'In 1h 42m', type: 'API Refresh' },
+  { id: 'st-2', name: 'Weekly Report', schedule: 'Saturdays at 02:00 UTC', timeRemaining: 'Tomorrow', type: 'Report' },
+  { id: 'st-3', name: 'NDVI Analysis', schedule: 'Sundays at 06:00 UTC', timeRemaining: 'In 2 days', type: 'AI Processing' },
+  { id: 'st-4', name: 'Backup', schedule: 'Daily at 00:00 UTC', timeRemaining: 'In 7h 15m', type: 'Maintenance' }
+];
+
+const MOCK_ALERTS: AlertItem[] = [
+  {
+    id: 'alt-1',
+    title: 'Analysis Failed',
+    message: 'Analysis job #4092 detected coordinate system discrepancy (EPSG:4326 vs EPSG:32643). Reprojection recommended.',
+    severity: 'critical',
+    timestamp: '15m ago',
+    actionText: 'Inspect',
+    actionHref: '/analysis-studio'
+  },
+  {
+    id: 'alt-2',
+    title: 'Storage Nearing Capacity',
+    message: 'Spatial database storage usage reached 71% (1.42 TB of 2.0 TB limit reached).',
+    severity: 'warning',
+    timestamp: '1h ago',
+    actionText: 'Inspect',
+    actionHref: '/settings'
+  },
+  {
+    id: 'alt-3',
+    title: 'API Authentication Expires Soon',
+    message: 'Data source authentication token for IMD Weather Stream will expire in 3 days.',
+    severity: 'warning',
+    timestamp: '2h ago',
+    actionText: 'Inspect',
+    actionHref: '/data-sources'
+  },
+  {
+    id: 'alt-4',
+    title: 'Report Ready',
+    message: 'Q3 Agricultural Productivity Overview draft has been compiled successfully.',
+    severity: 'info',
+    timestamp: '4h ago',
+    actionText: 'Inspect',
+    actionHref: '/reports'
+  }
+];
+
+const MOCK_TRENDS: TrendMetric[] = [
+  { id: 'tr-1', label: 'Dataset Upload Trend', value: '42.8 GB', change: '+18.4%', isPositive: true, bars: [35, 45, 60, 50, 75, 90, 85] },
+  { id: 'tr-2', label: 'Analysis Success Rate', value: '98.4%', change: '+1.2%', isPositive: true, bars: [92, 94, 96, 95, 98, 97, 99] },
+  { id: 'tr-3', label: 'API Synchronization Success', value: '99.8%', change: 'Stable', isPositive: true, bars: [100, 99, 100, 100, 99, 100, 100] },
+  { id: 'tr-4', label: 'Storage Growth', value: '+42 GB/mo', change: '-4.1%', isPositive: false, bars: [60, 65, 70, 75, 80, 85, 88] }
+];
+
+const MOCK_HEALTH: HealthNode[] = [
+  { name: 'Backend', status: 'Operational', detail: 'Latency: 24ms • Port 4000', state: 'ok' },
+  { name: 'Database', status: 'Healthy', detail: '14 Active Connections', state: 'ok' },
+  { name: 'AI Services', status: 'Active', detail: '3 GPU Nodes Running', state: 'ok' },
+  { name: 'Storage', status: 'Healthy', detail: '1.42 TB / 2.0 TB', state: 'warn' },
+  { name: 'Connected APIs', status: 'Online', detail: '5 / 5 Endpoints Active', state: 'ok' },
+  { name: 'Last Backup', status: 'Healthy', detail: '2 hours ago', state: 'ok' }
+];
+
+const MOCK_PINNED: PinnedResource[] = [
+  { id: 'pin-1', title: 'Karnal Research Plot Vector Layer', type: 'Dataset', metadata: 'GeoJSON • 450 acres', href: '/datasets', icon: 'dataset' },
+  { id: 'pin-2', title: 'NDVI Yield Stress Model v2.4', type: 'Analysis', metadata: 'Raster Pipeline • Sentinel-2', href: '/analysis-studio', icon: 'science' },
+  { id: 'pin-3', title: 'Q3 Crop Telemetry Executive Brief', type: 'Report', metadata: 'PDF • 14 Pages', href: '/reports', icon: 'assessment' },
+  { id: 'pin-4', title: 'Punjab Agricultural Extents 2026', type: 'Project', metadata: 'Multi-layer Workspace', href: '/gis-map', icon: 'map' }
+];
+
+export default function MissionControlDashboard() {
+  const { user } = useAuth();
+  const [greeting, setGreeting] = useState('Good Morning');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 12 && hour < 17) setGreeting('Good Afternoon');
+    else if (hour >= 17) setGreeting('Good Evening');
+    else setGreeting('Good Morning');
+
+    // Page Load Entrance Animation Stagger
+    const timer = setTimeout(() => setIsLoaded(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const userName = user?.name || 'Dr. V. Sharma';
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto text-[var(--text-main)] transition-colors duration-200">
-      
-      {/* Top Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--bg-surface)] p-5 rounded-xl border border-[var(--border-subtle)] shadow-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight">GeoVision Command Center</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase">
-              Production Node
-            </span>
+    <div className="p-6 lg:p-8 space-y-8 max-w-[1680px] mx-auto text-[var(--text-main)] transition-colors duration-200">
+
+      {/* ==========================================
+          SECTION 1: WELCOME BANNER (Operational Briefing)
+         ========================================== */}
+      <div
+        className={`glass-card p-6 rounded-2xl border border-[var(--border-subtle)] shadow-xl relative overflow-hidden transition-all duration-500 ease-out ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          {/* Operational Briefing Message */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight font-headline">
+                {greeting}, <span className="text-emerald-500 dark:text-emerald-400">{userName}</span>
+              </h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wide">
+                🟢 Operational
+              </span>
+            </div>
+            
+            <p className="text-xs text-[var(--text-muted)] font-medium">
+              Everything is operating normally.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-main)] font-semibold pt-1">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                12 datasets imported
+              </span>
+              <span className="text-[var(--text-faint)]">•</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                4 analyses completed
+              </span>
+              <span className="text-[var(--text-faint)]">•</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+                5 connected data sources online
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-[var(--text-muted)]">
-            Unified geospatial integration workspace • GeoVision telemetry node active
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/gis-map"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all"
-          >
-            <span className="material-symbols-outlined text-[18px]">map</span>
-            Open GIS Workspace
-          </Link>
-          <Link
-            href="/datasets"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:bg-[var(--border-subtle)] text-[var(--text-main)] rounded-lg text-xs font-semibold transition-all"
-          >
-            <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
-            Import Dataset
-          </Link>
+
+          {/* Primary Action Buttons with Micro-Interactions */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Link
+              href="/datasets"
+              className="group flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-emerald-500/20 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">cloud_upload</span>
+              Import Dataset
+            </Link>
+            <Link
+              href="/analysis-studio"
+              className="group flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">science</span>
+              New Analysis
+            </Link>
+            <Link
+              href="/gis-map"
+              className="group flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">map</span>
+              Open GIS Map
+            </Link>
+            <Link
+              href="/data-sources"
+              className="group flex items-center gap-2 px-3.5 py-2.5 bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] active:scale-[0.98] text-[var(--text-main)] rounded-xl text-xs font-semibold hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">hub</span>
+              Connect Data Source
+            </Link>
+            <Link
+              href="/reports"
+              className="group flex items-center gap-2 px-3.5 py-2.5 bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)] active:scale-[0.98] text-[var(--text-main)] rounded-xl text-xs font-semibold hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">assessment</span>
+              Generate Report
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi) => (
-          <div
+      {/* ==========================================
+          SECTION 2: PLATFORM OVERVIEW (Refined KPI Cards)
+         ========================================== */}
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 transition-all duration-500 ease-out delay-100 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+        {MOCK_KPIS.map((kpi) => (
+          <Link
             key={kpi.id}
-            className="bg-[var(--bg-surface)] p-4 rounded-xl border border-[var(--border-subtle)] shadow-xs flex flex-col justify-between"
+            href={kpi.href}
+            className="glass-card p-5 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/50 dark:hover:border-emerald-400/40 hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.98] transition-all duration-200 ease-out group cursor-pointer flex flex-col justify-between"
           >
-            <div className="flex items-start justify-between">
-              <span className="text-xs font-medium text-[var(--text-muted)]">{kpi.title}</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">
+                {kpi.title}
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
                 <span className="material-symbols-outlined text-[18px]">{kpi.icon}</span>
               </div>
             </div>
-            <div className="mt-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold tracking-tight font-mono">{kpi.value}</span>
-                {kpi.subValue && (
-                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center">
-                    {kpi.subValue}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-[var(--text-muted)] mt-1 flex items-center gap-1">
-                {kpi.trend === 'pulse' && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                )}
+
+            <div className="mt-4 space-y-1">
+              <span className="text-3xl font-extrabold font-mono tracking-tight text-[var(--text-main)] group-hover:scale-[1.02] inline-block transition-transform duration-200">
+                {kpi.value}
+              </span>
+              <p className="text-[11px] text-[var(--text-muted)] truncate">
                 {kpi.subText}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
-      {/* Main Grid: Cesium Viewer Preview + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Cesium Map Widget */}
-        <div className="lg:col-span-8 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs overflow-hidden flex flex-col min-h-[480px]">
-          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+      {/* ==========================================
+          GRID: SECTION 3 (Continue Working) & SECTION 4 (Activity Timeline)
+         ========================================== */}
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-500 ease-out delay-200 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+
+        {/* SECTION 3: CONTINUE WORKING */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <h3 className="text-sm font-semibold">Live GIS Map Preview</h3>
+              <span className="material-symbols-outlined text-[20px] text-emerald-400">history</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Continue Working</h2>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono text-[var(--text-muted)]">Cesium 3D Engine</span>
-              <Link
-                href="/gis-map"
-                className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
-              >
-                Expand Workspace
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
-            </div>
+            <span className="text-[11px] font-mono text-[var(--text-faint)]">Resume recent sessions</span>
           </div>
-          <div className="flex-1 relative bg-[var(--bg-app)] min-h-[380px]">
-            <DashboardMapWrapper />
+
+          <div className="space-y-3">
+            {MOCK_RECENT_WORK.map((item) => (
+              <div
+                key={item.id}
+                className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {item.type}
+                    </span>
+                    <span className="text-[11px] text-[var(--text-faint)] font-mono">{item.timeAgo}</span>
+                  </div>
+                  <h3 className="text-sm font-bold truncate text-[var(--text-main)]">{item.title}</h3>
+                  <p className="text-xs text-[var(--text-muted)] truncate">{item.subtitle}</p>
+                  
+                  {item.progress !== undefined && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <div className="flex-1 max-w-[220px] bg-[var(--border-subtle)] rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                          style={{ width: isLoaded ? `${item.progress}%` : '0%' }}
+                        />
+                      </div>
+                      <span className="text-[10.5px] font-mono text-[var(--text-muted)] font-semibold">{item.progress}%</span>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600/90 hover:bg-emerald-500 active:scale-[0.98] text-white rounded-xl text-xs font-semibold shadow-xs group-hover:shadow-emerald-500/20 shrink-0 self-start sm:self-center transition-all duration-200"
+                >
+                  <span>{item.buttonText}</span>
+                  <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Recent Telemetry & Activity Stream */}
-        <div className="lg:col-span-4 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs flex flex-col">
-          <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
-            <h3 className="text-sm font-semibold">System Stream & Activity</h3>
-            <span className="text-[10.5px] font-mono uppercase bg-[var(--bg-surface-hover)] px-2 py-0.5 rounded text-[var(--text-muted)] border border-[var(--border-subtle)]">
-              Real-time
-            </span>
+        {/* SECTION 4: ACTIVITY TIMELINE */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-teal-400">timeline</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Platform Activity Timeline</h2>
+            </div>
+            <span className="text-[11px] font-mono text-[var(--text-faint)] font-medium">Real-time event log</span>
           </div>
-          <div className="p-4 space-y-4 flex-1">
-            {activities.map((act) => (
+
+          <div className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] space-y-3 max-h-[380px] overflow-y-auto">
+            {MOCK_ACTIVITIES.map((act) => (
               <div
                 key={act.id}
-                className="flex items-start gap-3 p-2.5 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] transition-all"
+                className="group flex items-start gap-3 p-3 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-emerald-500/30 hover:bg-[var(--border-subtle)] transition-all duration-200"
               >
-                <div className="w-8 h-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-500/20 transition-all">
                   <span className="material-symbols-outlined text-[18px]">{act.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold truncate">{act.title}</p>
-                    <span className="text-[10px] text-[var(--text-faint)] shrink-0 font-mono">{act.timeAgo}</span>
+                    <span className="text-xs font-bold truncate text-[var(--text-main)]">{act.title}</span>
+                    <span className="text-[10.5px] font-mono text-[var(--text-faint)] group-hover:text-[var(--text-muted)] shrink-0 transition-colors">
+                      {act.timestamp}
+                    </span>
                   </div>
                   <p className="text-[11px] text-[var(--text-muted)] truncate mt-0.5">{act.subtitle}</p>
                 </div>
               </div>
             ))}
           </div>
-
-          {/* Infrastructure Health Subcard */}
-          <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-hover)] space-y-2 rounded-b-xl">
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
-                Spatial API Gateway
-              </span>
-              <span className="font-mono text-emerald-600 dark:text-emerald-400">100% Operational</span>
-            </div>
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px] text-emerald-500">check_circle</span>
-                Database Node
-              </span>
-              <span className="font-mono text-emerald-600 dark:text-emerald-400">Connected (PostgreSQL)</span>
-            </div>
-          </div>
         </div>
+
       </div>
 
-      {/* Spatial Targets & Research Parcels Table */}
-      <div className="bg-[var(--bg-surface)] rounded-xl border border-[var(--border-subtle)] shadow-xs overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-[var(--border-subtle)] flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-emerald-600 dark:text-emerald-400">pin_drop</span>
-            <h3 className="text-sm font-semibold">Priority Agricultural Parcels & Research Extents</h3>
+      {/* ==========================================
+          GRID: SECTION 5 (Quick Actions) & SECTION 6 (Scheduled Tasks) & SECTION 7 (Notifications)
+         ========================================== */}
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-500 ease-out delay-300 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+
+        {/* SECTION 5: QUICK ACTIONS (Clean 4 Shortcut Tiles) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-blue-400">bolt</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Quick Actions</h2>
+            </div>
           </div>
-          <Link
-            href="/datasets"
-            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
-          >
-            View Data Catalog
-          </Link>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/datasets"
+              className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex flex-col items-center justify-center text-center gap-2.5 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <span className="material-symbols-outlined text-[22px]">cloud_upload</span>
+              </div>
+              <span className="text-xs font-bold text-[var(--text-main)]">Import Dataset</span>
+            </Link>
+
+            <Link
+              href="/analysis-studio"
+              className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-teal-500/40 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex flex-col items-center justify-center text-center gap-2.5 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <span className="material-symbols-outlined text-[22px]">science</span>
+              </div>
+              <span className="text-xs font-bold text-[var(--text-main)]">New Analysis</span>
+            </Link>
+
+            <Link
+              href="/gis-map"
+              className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-blue-500/40 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex flex-col items-center justify-center text-center gap-2.5 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <span className="material-symbols-outlined text-[22px]">map</span>
+              </div>
+              <span className="text-xs font-bold text-[var(--text-main)]">Open GIS Map</span>
+            </Link>
+
+            <Link
+              href="/data-sources"
+              className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-cyan-500/40 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] transition-all duration-200 flex flex-col items-center justify-center text-center gap-2.5 group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <span className="material-symbols-outlined text-[22px]">hub</span>
+              </div>
+              <span className="text-xs font-bold text-[var(--text-main)]">Connect Data Source</span>
+            </Link>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[var(--bg-surface-hover)] text-[10.5px] uppercase tracking-wider font-mono font-semibold text-[var(--text-muted)] border-b border-[var(--border-subtle)]">
-                <th className="px-5 py-2.5">Site Extent</th>
-                <th className="px-5 py-2.5">Confidence</th>
-                <th className="px-5 py-2.5">GIS Status</th>
-                <th className="px-5 py-2.5">Readiness</th>
-                <th className="px-5 py-2.5">Node Owner</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-subtle)] text-xs">
-              {opportunities.map((opp) => (
-                <tr key={opp.id} className="hover:bg-[var(--bg-surface-hover)] transition-colors">
-                  <td className="px-5 py-3 font-semibold">
-                    <div>
-                      <p className="text-xs text-[var(--text-main)] font-semibold">{opp.siteName}</p>
-                      <p className="text-[10.5px] text-[var(--text-muted)] font-mono">{opp.details}</p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-[var(--border-subtle)] rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${opp.suitability}%` }}></div>
-                      </div>
-                      <span className="font-mono font-bold text-[11px]">{opp.suitability}%</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-[11.5px] font-medium text-[var(--text-muted)]">{opp.value}</td>
-                  <td className="px-5 py-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${opp.readinessBadge}`}>
-                      {opp.readiness}
+
+        {/* SECTION 6: UPCOMING SCHEDULED TASKS */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-purple-400">schedule</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Scheduled Tasks</h2>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] space-y-3">
+            {MOCK_SCHEDULED_TASKS.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center justify-between p-3 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-emerald-500/30 transition-all duration-200"
+              >
+                <div className="space-y-0.5 min-w-0">
+                  <p className="text-xs font-bold truncate text-[var(--text-main)]">{task.name}</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] font-mono">{task.schedule}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[11px] font-mono font-bold text-emerald-400 block">{task.timeRemaining}</span>
+                  <span className="text-[9.5px] uppercase font-mono text-[var(--text-faint)]">{task.type}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 7: NOTIFICATIONS & ALERTS */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-amber-400">notifications</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Notifications</h2>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20">
+              4 Active
+            </span>
+          </div>
+
+          <div className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] space-y-3 max-h-[300px] overflow-y-auto">
+            {MOCK_ALERTS.map((alert) => (
+              <div
+                key={alert.id}
+                className={`group p-3 rounded-xl border flex flex-col gap-1.5 transition-all duration-200 ${
+                  alert.severity === 'critical'
+                    ? 'bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/15'
+                    : alert.severity === 'warning'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/15'
+                    : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/15'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px]">
+                      {alert.severity === 'critical' ? 'error' : alert.severity === 'warning' ? 'warning' : 'info'}
                     </span>
-                  </td>
-                  <td className="px-5 py-3 text-[11.5px] font-medium text-[var(--text-muted)]">{opp.ownerName}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {alert.title}
+                  </span>
+                  <span className="text-[10px] font-mono opacity-70">{alert.timestamp}</span>
+                </div>
+                <p className="text-[11px] leading-relaxed opacity-90">{alert.message}</p>
+                <Link
+                  href={alert.actionHref}
+                  className="text-[10.5px] font-bold underline hover:opacity-100 self-end mt-0.5 group-hover:translate-x-0.5 transition-transform flex items-center gap-1"
+                >
+                  <span>{alert.actionText}</span>
+                  <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* ==========================================
+          GRID: SECTION 8 (Platform Trends) & SECTION 9 (Infrastructure Health)
+         ========================================== */}
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-500 ease-out delay-400 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+
+        {/* SECTION 8: PLATFORM TRENDS */}
+        <div className="lg:col-span-8 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-emerald-400">trending_up</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Platform Trends</h2>
+            </div>
+            <span className="text-[11px] font-mono text-[var(--text-faint)] font-medium">30-day operational telemetry</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {MOCK_TRENDS.map((trend) => (
+              <div
+                key={trend.id}
+                className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] space-y-3 flex flex-col justify-between hover:border-emerald-500/40 transition-all duration-200"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[var(--text-muted)]">{trend.label}</span>
+                  <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${
+                    trend.isPositive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  }`}>
+                    {trend.change}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-bold font-mono text-[var(--text-main)]">{trend.value}</span>
+                </div>
+
+                {/* SVG Micro Sparkline Bar Graph (Animates once on page load) */}
+                <div className="flex items-end gap-1.5 h-10 pt-2 border-t border-[var(--border-subtle)]">
+                  {trend.bars.map((bar, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-1 bg-emerald-500/30 hover:bg-emerald-400 rounded-t transition-all duration-700 ease-out"
+                      style={{ height: isLoaded ? `${bar}%` : '0%' }}
+                      title={`Value: ${bar}%`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 9: INFRASTRUCTURE HEALTH */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-emerald-400">monitor_heart</span>
+              <h2 className="text-sm font-semibold tracking-tight font-headline">Infrastructure Health</h2>
+            </div>
+            <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+              100% Online
+            </span>
+          </div>
+
+          <div className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] space-y-2.5">
+            {MOCK_HEALTH.map((node, idx) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-subtle)] hover:border-emerald-500/30 text-xs transition-all duration-200"
+              >
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-[var(--text-main)] flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${node.state === 'ok' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                    {node.name}
+                  </p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] font-mono">{node.detail}</p>
+                </div>
+                <span className="font-mono text-[11px] font-bold text-emerald-400">
+                  {node.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* ==========================================
+          SECTION 10: PINNED RESOURCES
+         ========================================== */}
+      <div
+        className={`space-y-4 transition-all duration-500 ease-out delay-500 ${
+          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        }`}
+      >
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-amber-400">push_pin</span>
+            <h2 className="text-sm font-semibold tracking-tight font-headline">Pinned Resources</h2>
+          </div>
+          <span className="text-[11px] font-mono text-[var(--text-faint)] font-medium">Quick access bookmarks</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {MOCK_PINNED.map((pin) => (
+            <Link
+              key={pin.id}
+              href={pin.href}
+              className="glass-card p-4 rounded-xl border border-[var(--border-subtle)] hover:border-emerald-500/40 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] transition-all duration-200 group flex items-start gap-3"
+            >
+              <div className="w-9.5 h-9.5 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <span className="material-symbols-outlined text-[20px]">{pin.icon}</span>
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[10px] font-mono uppercase font-bold text-emerald-400">
+                    {pin.type}
+                  </span>
+                  <span className="material-symbols-outlined text-[14px] text-[var(--text-faint)] group-hover:text-[var(--text-main)] group-hover:translate-x-0.5 transition-all">
+                    open_in_new
+                  </span>
+                </div>
+                <h3 className="text-xs font-bold truncate text-[var(--text-main)]">{pin.title}</h3>
+                <p className="text-[10.5px] text-[var(--text-muted)] font-mono truncate">{pin.metadata}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
+
     </div>
   );
 }
