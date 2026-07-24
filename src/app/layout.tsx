@@ -45,22 +45,16 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full bg-[var(--bg-app)] text-[var(--text-main)] font-inter antialiased transition-colors duration-200 relative overflow-x-hidden">
-        {/* High-Impact Vibrant Ambient Background Layer (Linear / Raycast / Arc / macOS Glass aesthetic) */}
+        {/* Enterprise Ambient Background — Deep Navy / Charcoal Foundation */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          {/* Top-Left Vibrant Emerald Glow */}
-          <div className="absolute -top-40 -left-40 w-[850px] h-[850px] rounded-full bg-emerald-500/35 dark:bg-emerald-500/40 blur-[130px] animate-slow-drift" />
+          {/* Base: Subtle dark slate-blue wash — sets the deep foundation */}
+          <div className="absolute -top-32 -left-32 w-[900px] h-[900px] rounded-full bg-slate-700/10 dark:bg-slate-800/8 blur-[160px] animate-slow-drift" />
           
-          {/* Top-Right Vivid Cyan / Blue Glow */}
-          <div className="absolute -top-20 right-0 w-[900px] h-[900px] rounded-full bg-cyan-400/30 dark:bg-cyan-500/35 blur-[140px] animate-slow-drift [animation-delay:4s]" />
+          {/* Mid: Soft navy accent — provides depth without color noise */}
+          <div className="absolute top-1/3 right-0 w-[800px] h-[800px] rounded-full bg-blue-900/8 dark:bg-blue-950/10 blur-[150px] animate-slow-drift [animation-delay:6s]" />
           
-          {/* Center-Left Deep Violet Accent Blob */}
-          <div className="absolute top-1/3 -left-20 w-[800px] h-[800px] rounded-full bg-purple-600/25 dark:bg-violet-600/35 blur-[150px] animate-slow-drift [animation-delay:8s]" />
-          
-          {/* Center-Right Royal Blue Glow */}
-          <div className="absolute top-1/2 -right-20 w-[850px] h-[850px] rounded-full bg-blue-600/28 dark:bg-blue-600/38 blur-[140px] animate-slow-drift [animation-delay:12s]" />
-          
-          {/* Bottom-Center Teal / Emerald Ambient Orb */}
-          <div className="absolute -bottom-40 left-1/3 w-[900px] h-[900px] rounded-full bg-teal-400/32 dark:bg-teal-500/38 blur-[130px] animate-slow-drift [animation-delay:16s]" />
+          {/* Accent: Very faint cyan highlight — single subtle brand accent */}
+          <div className="absolute -bottom-32 left-1/4 w-[850px] h-[850px] rounded-full bg-cyan-900/6 dark:bg-cyan-950/8 blur-[160px] animate-slow-drift [animation-delay:12s]" />
         </div>
 
         <ThemeProvider>
