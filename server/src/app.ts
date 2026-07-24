@@ -2,7 +2,7 @@
  * Express Application Factory
  *
  * Assembles all global middleware in the correct order:
- *   1. Security (Helmet, CORS)
+ *   1. Security (CORS, Helmet)
  *   2. Parsing (JSON, URL-encoded)
  *   3. Compression
  *   4. Request Logging
@@ -29,14 +29,56 @@ import { mapRouter } from './modules/map';
 export function createApp(): express.Application {
   const app = express();
 
-  // ── Security ──────────────────────────
-  app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  }));
-  app.use(cors({
-    origin: config.corsOrigin,
+  // ── CORS Configuration ──────────────────
+  const envCorsOrigins = config.corsOrigin
+    ? config.corsOrigin.split(',').map((o) => o.trim())
+    : [];
+
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    'http://localhost:4000',
+    'http://127.0.0.1:4000',
+    ...envCorsOrigins,
+  ];
+
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Check explicit allowed origins or wildcard or localhost pattern in dev
+      const isAllowed =
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes('*') ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        logger.warn(`CORS blocked request from origin: ${origin}`);
+        callback(new Error(`CORS policy error: Origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
-  }));
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Authorization'],
+    optionsSuccessStatus: 200,
+  };
+
+  // Enable CORS middleware for all routes & HTTP methods (including preflight OPTIONS)
+  app.use(cors(corsOptions));
+
+  // ── Helmet Security Headers ─────────────
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'unsafe-none' },
+    })
+  );
 
   // ── Parsing ───────────────────────────
   app.use(express.json({ limit: '10mb' }));
@@ -69,14 +111,6 @@ export function createApp(): express.Application {
   app.use('/api/datasets', datasetRouter);
   app.use('/api/upload', uploadRouter);
   app.use('/api/map', mapRouter);
-
-  // Future routes:
-  //   app.use('/api/datasets',   datasetRouter);
-  //   app.use('/api/sources',    dataSourceRouter);
-  //   app.use('/api/pipelines',  pipelineRouter);
-  //   app.use('/api/results',    analysisResultRouter);
-  //   app.use('/api/layers',     mapLayerRouter);
-  //   app.use('/api/reports',    reportRouter);
 
   // ── 404 Catch-All ─────────────────────
   app.use((_req, _res, next) => {

@@ -76,7 +76,7 @@ export default function TopNavBar() {
   const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
 
   return (
-    <header className="h-[64px] shrink-0 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] flex items-center justify-between px-6 z-20 sticky top-0 w-full transition-colors duration-200">
+    <header className="h-[64px] shrink-0 bg-[var(--bg-surface)] backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between px-6 z-20 sticky top-0 w-full transition-colors duration-200">
       
       {/* Left Area (Title, Subtitle, Ext Left) */}
       <div className="flex items-center gap-3">

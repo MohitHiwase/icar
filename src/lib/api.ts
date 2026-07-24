@@ -69,6 +69,12 @@ class ApiError extends Error {
   }
 }
 
+function getUrl(endpoint: string): string {
+  const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/+$/, "");
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  return `${base}${path}`;
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -83,7 +89,7 @@ async function request<T>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await fetch(getUrl(endpoint), {
     ...options,
     headers,
   });
@@ -134,7 +140,7 @@ async function tryRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
+    const res = await fetch(getUrl("/auth/refresh"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
@@ -388,7 +394,7 @@ export const datasetsApi = {
       if (options?.description) formData.append("description", options.description);
       if (options?.sourceId) formData.append("sourceId", options.sourceId);
 
-      xhr.open("POST", `${API_BASE}/upload/dataset`);
+      xhr.open("POST", getUrl("/upload/dataset"));
 
       // Authentication Token
       const token = getAccessToken();
