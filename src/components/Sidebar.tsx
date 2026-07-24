@@ -20,7 +20,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-[240px] h-screen fixed left-0 top-0 border-r border-[var(--border-subtle)] flex flex-col justify-between p-4 bg-[var(--bg-surface)] text-[var(--text-main)] z-30 transition-colors duration-200">
+    <aside className="w-[240px] h-screen fixed left-0 top-0 border-r border-[var(--border-subtle)] flex flex-col justify-between p-4 bg-[var(--bg-surface)] backdrop-blur-[36px] backdrop-saturate-180 text-[var(--text-main)] z-30 transition-colors duration-200">
       <div>
         {/* Brand Logo & Node Identifier */}
         <div className="mb-6 px-2 pt-2">

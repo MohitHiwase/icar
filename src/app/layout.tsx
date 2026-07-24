@@ -45,11 +45,22 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full bg-[var(--bg-app)] text-[var(--text-main)] font-inter antialiased transition-colors duration-200 relative overflow-x-hidden">
-        {/* Ambient Premium Gaussian Background Glows */}
+        {/* High-Impact Vibrant Ambient Background Layer (Linear / Raycast / Arc / macOS Glass aesthetic) */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-emerald-500/8 dark:bg-emerald-500/10 blur-[120px]" />
-          <div className="absolute top-1/3 -right-40 w-[650px] h-[650px] rounded-full bg-teal-500/6 dark:bg-teal-500/8 blur-[140px]" />
-          <div className="absolute -bottom-40 left-1/3 w-[550px] h-[550px] rounded-full bg-blue-500/5 dark:bg-blue-500/8 blur-[130px]" />
+          {/* Top-Left Vibrant Emerald Glow */}
+          <div className="absolute -top-40 -left-40 w-[850px] h-[850px] rounded-full bg-emerald-500/35 dark:bg-emerald-500/40 blur-[130px]" />
+          
+          {/* Top-Right Vivid Cyan / Blue Glow */}
+          <div className="absolute -top-20 right-0 w-[900px] h-[900px] rounded-full bg-cyan-400/30 dark:bg-cyan-500/35 blur-[140px]" />
+          
+          {/* Center-Left Deep Violet Accent Blob */}
+          <div className="absolute top-1/3 -left-20 w-[800px] h-[800px] rounded-full bg-purple-600/25 dark:bg-violet-600/35 blur-[150px]" />
+          
+          {/* Center-Right Royal Blue Glow */}
+          <div className="absolute top-1/2 -right-20 w-[850px] h-[850px] rounded-full bg-blue-600/28 dark:bg-blue-600/38 blur-[140px]" />
+          
+          {/* Bottom-Center Teal / Emerald Ambient Orb */}
+          <div className="absolute -bottom-40 left-1/3 w-[900px] h-[900px] rounded-full bg-teal-400/32 dark:bg-teal-500/38 blur-[130px]" />
         </div>
 
         <ThemeProvider>

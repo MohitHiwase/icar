@@ -22,30 +22,31 @@
   --radius-lg: 1rem;
 }
 
+/* Translucent Surface Design System for Deep Glassmorphism (Linear / Arc / Raycast / macOS style) */
 :root {
-  --bg-app: #F8FAFC;
-  --bg-surface: rgba(255, 255, 255, 0.88);
-  --bg-surface-elevated: #FFFFFF;
-  --bg-surface-hover: #F1F5F9;
-  --border-subtle: #E2E8F0;
-  --border-medium: #CBD5E1;
+  --bg-app: rgba(241, 245, 249, 0.45);
+  --bg-surface: rgba(255, 255, 255, 0.48);
+  --bg-surface-elevated: rgba(255, 255, 255, 0.58);
+  --bg-surface-hover: rgba(255, 255, 255, 0.70);
+  --border-subtle: rgba(255, 255, 255, 0.40);
+  --border-medium: rgba(0, 0, 0, 0.12);
   --text-main: #0F172A;
-  --text-muted: #64748B;
-  --text-faint: #94A3B8;
-  --card-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+  --text-muted: #475569;
+  --text-faint: #64748B;
+  --card-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 4px 16px -2px rgba(0, 0, 0, 0.04);
 }
 
 .dark {
-  --bg-app: #0B0F17;
-  --bg-surface: rgba(19, 27, 42, 0.85);
-  --bg-surface-elevated: #182234;
-  --bg-surface-hover: #1E2A3E;
-  --border-subtle: #1E293B;
-  --border-medium: #334155;
+  --bg-app: rgba(9, 13, 22, 0.45);
+  --bg-surface: rgba(15, 23, 42, 0.48);
+  --bg-surface-elevated: rgba(24, 34, 52, 0.58);
+  --bg-surface-hover: rgba(30, 41, 59, 0.65);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.15);
   --text-main: #F8FAFC;
   --text-muted: #94A3B8;
   --text-faint: #64748B;
-  --card-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 20px 48px -6px rgba(0, 0, 0, 0.55), 0 8px 20px -2px rgba(0, 0, 0, 0.40);
 }
 
 body {
@@ -83,11 +84,20 @@ h1, h2, h3, h4, h5, h6, .font-headline, .font-hanken {
   background-size: 24px 24px;
 }
 
-/* Glassmorphism & Soft Ambient Surface Treatments */
+/* High-Impact Glassmorphism Surface Utilities (36px Blur + 180% Saturation) */
 .glass-panel {
   background: var(--bg-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(36px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-card {
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(36px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--card-shadow);
 }
 
 /* Enterprise compact scrollbars */
